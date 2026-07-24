@@ -2215,32 +2215,11 @@
           <button class="glog-add" id="glogAdd" aria-label="记下这条成长日志" title="记下来"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
         </div>
         <div class="glog-list" id="glogList">
-          <div class="glog" style="--mc:var(--q2)">
-            <div class="rail"><span class="node"></span><span class="line"></span></div>
-            <div class="body">
-              <div class="meta"><span class="date">7月21日 周二</span><button class="mood" data-mood="2" title="有成就感 · 点击修改">🎉</button></div>
-              <div class="txt">评审会临时插了两个会，但下午还是啃完了 OKR 初稿。被打断时没焦虑，反而更能接受「计划本来就会变」。</div>
-            </div>
-          </div>
-          <div class="glog" style="--mc:var(--q3)">
-            <div class="rail"><span class="node"></span><span class="line"></span></div>
-            <div class="body">
-              <div class="meta"><span class="date">7月19日 周六</span><button class="mood" data-mood="3" title="顿悟 · 点击修改">💡</button></div>
-              <div class="txt">开始接受「不用把每件事排到几点」，只标哪天做，反而更愿意动手了。松弛感是真的能提高完成率。</div>
-            </div>
-          </div>
-          <div class="glog" style="--mc:var(--q1)">
-            <div class="rail"><span class="node"></span></div>
-            <div class="body">
-              <div class="meta"><span class="date">7月18日 周五</span><button class="mood" data-mood="4" title="略累 · 点击修改">😮‍💨</button></div>
-              <div class="txt">一周会议偏多，被动安排的时间快占了一半。下周想主动留两个「无会区块」给深度工作。</div>
-            </div>
-          </div>
         </div>
       </section>
 
-      <!-- Weekly review teaser -->
-      <section class="review" data-component="weekly-review" data-od-id="weekly-review">
+      <!-- Weekly review teaser (hidden: reviews accessed via tabs only) -->
+      <section class="review" data-component="weekly-review" data-od-id="weekly-review" hidden>
         <h3>本周回顾 · 预览</h3>
         <p class="rsub">到目前为止，你把 <b>58%</b> 的时间放在了「重要」的事上 —— 这一周过得挺有分量。</p>
         <div class="qbars">
@@ -2266,8 +2245,8 @@
           <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 3v4M16 3v4M4 9h16"/></svg>
           本周回顾
         </span>
-        <h1 class="rp-title" id="rpTitle">7月20日 – 7月26日 · 你的一周</h1>
-        <p class="rp-lede" id="rpLede">这一周你完成了 <b>9 件事</b>，AI 把它们理成了几类：真正推进「产品需求 v1」花了 <b class="hl">7.5h</b>，是本周当之无愧的重心；日常协作、自我投资各有投入，边角杂事只占了一点点。会议占用不少，但你还是守住了深度工作的空间 —— 过得挺有分量。</p>
+        <h1 class="rp-title" id="rpTitle">本周 · 你的一周</h1>
+        <p class="rp-lede" id="rpLede">数据加载中…</p>
       </div>
       <div class="rp-head-r">
         <button class="rp-ghost" id="exportReport" type="button"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>导出周报</button>
@@ -2279,27 +2258,27 @@
     <section class="rp-stats" data-od-id="report-stats">
       <div class="stat">
         <span class="stat-ic" style="--sc:var(--q2)"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
-        <div class="stat-v" id="rpDone">9<small>件</small></div>
+        <div class="stat-v" id="rpDone">-<small>件</small></div>
         <div class="stat-l">完成任务</div>
-        <div class="stat-sub" id="rpDoneSub">较上周 +2，节奏更稳</div>
+        <div class="stat-sub" id="rpDoneSub">加载中</div>
       </div>
       <div class="stat">
         <span class="stat-ic" style="--sc:var(--primary)"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"/></svg></span>
-        <div class="stat-v" id="rpDeep">11.5<small>h</small></div>
+        <div class="stat-v" id="rpDeep">-<small>h</small></div>
         <div class="stat-l">深度工作</div>
-        <div class="stat-sub" id="rpDeepSub">占清醒工作时间约 34%</div>
+        <div class="stat-sub" id="rpDeepSub">加载中</div>
       </div>
       <div class="stat">
         <span class="stat-ic" style="--sc:var(--q3)"><svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>
-        <div class="stat-v" id="rpMeet">8.0<small>h</small></div>
+        <div class="stat-v" id="rpMeet">-<small>h</small></div>
         <div class="stat-l">会议占用</div>
-        <div class="stat-sub" id="rpMeetSub">6 场，多为被动安排</div>
+        <div class="stat-sub" id="rpMeetSub">加载中</div>
       </div>
       <div class="stat">
         <span class="stat-ic" style="--sc:var(--q1)"><svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span>
-        <div class="stat-v" id="rpGoal">2<small>/3</small></div>
+        <div class="stat-v" id="rpGoal">-<small>/0</small></div>
         <div class="stat-l">周目标达成</div>
-        <div class="stat-sub" id="rpGoalSub">健身 & 学习在轨，1 项待补</div>
+        <div class="stat-sub" id="rpGoalSub">加载中</div>
       </div>
     </section>
 
@@ -2378,8 +2357,8 @@
           <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
           本月回顾
         </span>
-        <h1 class="rp-title" id="mrTitle">2026 年 7 月 · 你的七月</h1>
-        <p class="rp-lede" id="mrLede">本月至今你完成了 <b>34 件事</b>，深度工作累计 <b class="hl">42.5h</b>。「产品需求 v1 + Q3 规划」是这个月的主线，第 3 周状态最好，第 2 周被会议和杂事切得有点碎。整体节奏稳，四个月目标里已有 <b>3 项</b>在轨。</p>
+        <h1 class="rp-title" id="mrTitle">本月 · 你的这个月</h1>
+        <p class="rp-lede" id="mrLede">数据加载中…</p>
       </div>
       <div class="rp-head-r">
         <button class="rp-ghost" id="exportMonth" type="button"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>导出月报</button>
@@ -2390,27 +2369,27 @@
     <section class="rp-stats" data-od-id="month-stats">
       <div class="stat">
         <span class="stat-ic" style="--sc:var(--q2)"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
-        <div class="stat-v" id="mrDone">34<small>件</small></div>
+        <div class="stat-v" id="mrDone">-<small>件</small></div>
         <div class="stat-l">完成任务</div>
-        <div class="stat-sub" id="mrDoneSub">本月至今，较 6 月 +5</div>
+        <div class="stat-sub" id="mrDoneSub">加载中</div>
       </div>
       <div class="stat">
         <span class="stat-ic" style="--sc:var(--primary)"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"/></svg></span>
-        <div class="stat-v" id="mrDeep">42.5<small>h</small></div>
+        <div class="stat-v" id="mrDeep">-<small>h</small></div>
         <div class="stat-l">深度工作</div>
-        <div class="stat-sub" id="mrDeepSub">日均约 1.9h，稳定在轨</div>
+        <div class="stat-sub" id="mrDeepSub">加载中</div>
       </div>
       <div class="stat">
         <span class="stat-ic" style="--sc:var(--q3)"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="9"/></svg></span>
-        <div class="stat-v" id="mrActive">18<small>天</small></div>
+        <div class="stat-v" id="mrActive">-<small>天</small></div>
         <div class="stat-l">活跃天数</div>
-        <div class="stat-sub" id="mrActiveSub">有记录的天数</div>
+        <div class="stat-sub" id="mrActiveSub">加载中</div>
       </div>
       <div class="stat">
         <span class="stat-ic" style="--sc:var(--q1)"><svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span>
-        <div class="stat-v" id="mrGoal">3<small>/4</small></div>
+        <div class="stat-v" id="mrGoal">-<small>/0</small></div>
         <div class="stat-l">月目标达成</div>
-        <div class="stat-sub" id="mrGoalSub">学习 & 健身领先，1 项收尾</div>
+        <div class="stat-sub" id="mrGoalSub">加载中</div>
       </div>
     </section>
 
@@ -2962,72 +2941,9 @@
       {id:nid(),type:"task",title:"打卡新开的日料店",done:false,desc:"晚上定了位子",cat:"play",time:"19:00"} ],
     [ {id:nid(),type:"task",title:"看脱口秀专场",done:false,desc:"笑一笑，攒点年度回顾素材",cat:"play",time:"20:00"} ]
   ];
-  // 历史三周（已回顾）：全部已完成，供「月度回顾」与「每周节奏」按看板真实汇总。
-  weeks[ymd(addDays(curMon,-7))] = [ // 第 3 周 7/13–7/19 · 状态最好
-    [ {id:nid(),type:"meeting",title:"需求评审会",dur:1.0,time:"10:00",desc:"研发 + 产品",cat:"work"},
-      {id:nid(),type:"task",title:"主导迭代规划",q:1,done:true,spent:2.0,cat:"work"},
-      {id:nid(),type:"task",title:"写上周周报",q:3,done:true,spent:0.5,cat:"work"} ],
-    [ {id:nid(),type:"task",title:"需求文档 v0",q:1,done:true,spent:3.0,cat:"work"},
-      {id:nid(),type:"task",title:"读《深度工作》两章",q:2,done:true,spent:2.0,cat:"study"} ],
-    [ {id:nid(),type:"meeting",title:"产品对齐会",dur:1.0,time:"14:00",desc:"与业务方对齐",cat:"work"},
-      {id:nid(),type:"task",title:"整理竞品调研",q:2,done:true,spent:2.0,cat:"work"} ],
-    [ {id:nid(),type:"task",title:"客户访谈",q:2,done:true,spent:1.5,cat:"work"},
-      {id:nid(),type:"task",title:"力量训练",q:2,done:true,spent:1.0,cat:"fitness"} ],
-    [ {id:nid(),type:"meeting",title:"周会 + 复盘",dur:1.0,time:"17:00",cat:"work"},
-      {id:nid(),type:"task",title:"整理访谈纪要",q:3,done:true,spent:1.0,cat:"work"} ],
-    [ {id:nid(),type:"task",title:"力量训练",q:2,done:true,spent:1.0,cat:"fitness"},
-      {id:nid(),type:"task",title:"逛当代美术馆",done:true,spent:2.0,desc:"新展开幕，拍了不少照片",cat:"play"} ],
-    [ {id:nid(),type:"task",title:"读《持续买入》",q:2,done:true,spent:1.0,cat:"study"},
-      {id:nid(),type:"task",title:"看了脱口秀专场",done:true,spent:1.5,desc:"笑到肚子疼，攒点年度回顾素材",cat:"play"} ]
-  ];
-  weeks[ymd(addDays(curMon,-14))] = [ // 第 2 周 7/6–7/12 · 被会议切碎
-    [ {id:nid(),type:"meeting",title:"双周评审会",dur:1.0,time:"10:00",cat:"work"},
-      {id:nid(),type:"task",title:"排本周计划",q:2,done:true,spent:0.5,cat:"work"} ],
-    [ {id:nid(),type:"task",title:"需求初稿",q:1,done:true,spent:3.0,cat:"work"},
-      {id:nid(),type:"task",title:"竞品速览",q:2,done:true,spent:1.0,cat:"work"} ],
-    [ {id:nid(),type:"meeting",title:"项目对齐",dur:1.0,time:"11:00",cat:"work"},
-      {id:nid(),type:"meeting",title:"临时同步",dur:0.5,time:"15:00",cat:"work"},
-      {id:nid(),type:"task",title:"回复合作方邮件",q:3,done:true,spent:0.5,cat:"work"} ],
-    [ {id:nid(),type:"task",title:"力量训练",q:2,done:true,spent:1.0,cat:"fitness"} ],
-    [ {id:nid(),type:"meeting",title:"周会",dur:1.0,time:"17:00",cat:"work"},
-      {id:nid(),type:"task",title:"报销上月发票",q:4,done:true,spent:0.5,cat:"life"} ],
-    [ {id:nid(),type:"task",title:"读《持续买入》",q:2,done:true,spent:2.0,cat:"study"} ],
-    [ {id:nid(),type:"task",title:"和朋友吃了顿好的",done:true,spent:2.0,desc:"许久没聚，火锅配八卦，聊到很晚",cat:"play"} ]
-  ];
-  weeks[ymd(addDays(curMon,-21))] = [ // 第 1 周 6/29–7/5
-    [ {id:nid(),type:"meeting",title:"双周评审会",dur:1.0,time:"10:00",cat:"work"},
-      {id:nid(),type:"task",title:"季度规划",q:1,done:true,spent:2.0,cat:"work"},
-      {id:nid(),type:"task",title:"清理邮件",q:3,done:true,spent:0.5,cat:"work"} ],
-    [ {id:nid(),type:"task",title:"OKR 脑暴",q:2,done:true,spent:1.5,cat:"work"},
-      {id:nid(),type:"task",title:"傍晚去江边散步",done:true,spent:1.0,desc:"下班绕远路，看了会儿日落",cat:"play"} ],
-    [ {id:nid(),type:"task",title:"竞品调研",q:2,done:true,spent:3.0,cat:"work"} ],
-    [ {id:nid(),type:"task",title:"客户回访",q:3,done:true,spent:0.5,cat:"work"},
-      {id:nid(),type:"task",title:"力量训练",q:2,done:true,spent:1.0,cat:"fitness"} ],
-    [ {id:nid(),type:"meeting",title:"周会",dur:1.0,time:"17:00",cat:"work"},
-      {id:nid(),type:"task",title:"整理笔记",q:2,done:true,spent:1.0,cat:"study"} ],
-    [ {id:nid(),type:"task",title:"读《深度工作》",q:2,done:true,spent:1.0,cat:"study"} ],
-    [ {id:nid(),type:"task",title:"去看了场画展",done:true,spent:1.5,desc:"周末给自己放个假，慢慢逛",cat:"play"} ]
-  ];
-  // 钉钉日历「待同步」数据：按周（周一 ymd）→ 天索引分组。点「同步钉钉日程」时拉进对应的日子。
+  // 钉钉日历（暂未开放，后续接入真实 API）
   var DT_SYNC = {};
-  DT_SYNC[ymd(curMon)] = {
-    2:[ {type:"meeting",title:"周会内容准备",time:"14:00",desc:"个人日程 · 2 小时",cat:"work"} ],
-    3:[ {type:"meeting",title:"周会内容准备",time:"10:00",desc:"个人日程 · 1 小时",cat:"work"},
-        {type:"meeting",title:"淘鲜达权益延期",time:"11:00",desc:"个人日程 · 30 分钟",cat:"work"},
-        {type:"meeting",title:"鲜果派对品牌会员开通",time:"14:00",desc:"果咖组织 · 钉钉视频会议",cat:"work"} ],
-    5:[ {type:"meeting",title:"提取公积金",time:"10:00",desc:"个人日程 · 1 小时",cat:"work"} ]
-  };
-  // 下一周（钉钉截图里能看到的日程：周二两小时周会准备、周四一小时周会准备、周六 ChinaJoy 全天）
-  DT_SYNC[ymd(addDays(curMon,7))] = {
-    1:[ {type:"meeting",title:"周会内容准备",time:"14:00",desc:"个人日程 · 2 小时",cat:"work"} ],
-    3:[ {type:"meeting",title:"周会内容准备",time:"10:00",desc:"个人日程 · 1 小时",cat:"work"} ],
-    5:[ {type:"meeting",title:"ChinaJoy",time:"全天",desc:"个人日程 · 全天",cat:"play"} ]
-  };
-  // 再下一周（兜底一条，避免继续往前翻按钮完全没反馈）
-  DT_SYNC[ymd(addDays(curMon,14))] = {
-    2:[ {type:"meeting",title:"月度业务评审",time:"15:00",desc:"个人日程 · 1.5 小时",cat:"work"} ]
-  };
-  var dtSyncedWeeks = {}; // 记录已同步过的周，避免重复拉入
+  var dtSyncedWeeks = {};
   function getWeekTasks(mon){
     var k=ymd(mon);
     if(!weeks[k]) weeks[k]=[[],[],[],[],[],[],[]];
@@ -5110,44 +5026,11 @@
     selectWeek(mondayOf(TODAY),"已回到本周");
   });
 
-  // ---- 钉钉日程同步 ----
+  // ---- 钉钉日程同步（暂未开放） ----
   var dtSyncBtn=document.getElementById("dtSync");
   var dtSyncTxt=dtSyncBtn.querySelector(".dt-sync-txt");
   dtSyncBtn.addEventListener("click",function(){
-    if(dtSyncBtn.classList.contains("syncing")) return;
-    var wk=ymd(curMon);
-    var payload=DT_SYNC[wk];
-    dtSyncBtn.classList.remove("done");
-    dtSyncBtn.classList.add("syncing");
-    dtSyncTxt.textContent="同步中…";
-    setTimeout(function(){
-      dtSyncBtn.classList.remove("syncing");
-      if(payload && !dtSyncedWeeks[wk]){
-        var wkTasks=getWeekTasks(curMon), newIds=[];
-        Object.keys(payload).forEach(function(di){
-          var idx=parseInt(di,10), evs=payload[di];
-          for(var j=evs.length-1;j>=0;j--){
-            var ev=evs[j];
-            var card={id:nid(),type:"meeting",title:ev.title,time:ev.time,desc:ev.desc,cat:ev.cat};
-            wkTasks[idx].unshift(card);
-            newIds.push(card.id);
-          }
-        });
-        dtSyncedWeeks[wk]=true;
-        render();
-        newIds.forEach(function(id){
-          var c=grid.querySelector('.card[data-id="'+id+'"]');
-          if(c) c.classList.add("dt-in");
-        });
-        dtSyncBtn.classList.add("done");
-        dtSyncTxt.textContent="已同步";
-        toast("已从钉钉同步 "+newIds.length+" 条日程到本周日历");
-        setTimeout(function(){ dtSyncBtn.classList.remove("done"); dtSyncTxt.textContent="同步钉钉日程"; },2600);
-      } else {
-        dtSyncTxt.textContent="同步钉钉日程";
-        toast(payload?"钉钉日程已是最新，没有新的日程":"本周暂无可同步的钉钉日程");
-      }
-    },1000);
+    toast("钉钉日历同步功能暂未开放，后续版本接入");
   });
 
   // ---- pomodoro / focus mode ----
