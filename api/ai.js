@@ -12,8 +12,13 @@ module.exports = async (req, res) => {
   const apiKey = process.env.DASHSCOPE_API_KEY;
   if (!apiKey) { res.status(500).json({ error: "AI service not configured" }); return; }
 
-  const { text, weekDays } = req.body || {};
+  const { text, weekDays, todayWd, todayOffset } = req.body || {};
   if (!text) { res.status(400).json({ error: "text is required" }); return; }
+
+  const hasToday = (typeof todayOffset === "number" && todayOffset >= 0 && todayOffset <= 6);
+  const todayLine = hasToday
+    ? `\n\n**重要：今天是 ${todayWd || ""}，也就是本周第 ${todayOffset} 天（0=周一 ... 6=周日）。** 相对日期一律以此为准：今天 = day ${todayOffset}；明天 = day ${todayOffset + 1}；后天 = day ${todayOffset + 2}。若算出来的 day 大于 6，说明落到下周，按 7=下周一 ... 13=下周日 处理。不要凭空猜今天是周几。`
+    : "";
 
   const systemPrompt = `你是「周周搞事情」时间管理工具的 AI 助手。用户会用口语化的方式描述本周想做的事——可能是一大段话、可能有废话、可能逻辑混乱。你的工作是：
 
@@ -35,16 +40,24 @@ module.exports = async (req, res) => {
   "desc": "一句话备注：保留用户提到的关键细节（可选）"
 }
 
-本周日历：${weekDays || "周一到周日"}
+本周日历：${weekDays || "周一到周日"}${todayLine}
 
 判断规则：
 - "这周X"或只说"周X" → day = 对应 0-6（0=周一，6=周日）
 - "下周X" → day = 7 + 对应值（7=下周一，8=下周二 ... 13=下周日）
-- "今天""明天""后天" → 根据本周日历算出是星期几，填对应 day 0-6
+- "今天""明天""后天""大后天" → 严格按上面给出的「今天」锚点推算，不要自己猜。今天没有给锚点时才填 -1。
 - 没提具体哪天 → day 填 -1（进任务池让用户自己拖）
 - 四象限判断：核心工作产出/目标相关=Q2，有截止日催促=Q1，别人找你的杂事=Q3，无所谓的=Q4
 - 学习/健身/成长类默认=Q2，聚餐/娱乐/购物=play
 - 如果用户只写了一句很短的话（比如"开会"），也要给出合理的完整任务
+
+时间提取规则（重要）：
+- 只要用户提到了具体时间点，就必须把它填进 time 字段，用 24 小时制 HH:MM 格式，前面补零。
+- 中文口语要正确换算：早上/上午 = 上午原点；中午12点 → 12:00；下午/晚上/傍晚要 +12（下午3点 → 15:00，晚上8点 → 20:00，晚上8点半 → 20:30）；早上9点 → 09:00；半 = 30 分。
+- 已经是"18:00""9:30"这类的直接规范成 HH:MM。
+- 只说了模糊时间段（"上午""晚点""有空的时候"）而没有具体钟点 → time 填空字符串。
+- 完全没提时间 → time 填空字符串，不要自己编一个。
+- 例："周六下午6点打网球" → {"title":"打网球","day":5,"time":"18:00",...}；"明早9点开周会" → time 填 "09:00"。
 
 只返回 JSON 数组，不要有任何其他文字。`;
 
