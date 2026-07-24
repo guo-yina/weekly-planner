@@ -2587,7 +2587,18 @@
     var { data: rows } = await sb.from("weekly_data")
       .select("week_start, tasks, goals, theme")
       .eq("user_id", currentUser.id);
-    if(!rows || rows.length === 0) return; // first time user, keep demo data
+    if(!rows || rows.length === 0){
+      // 新用户：清空所有演示数据，从空白开始
+      Object.keys(weeks).forEach(function(k){ delete weeks[k]; });
+      pool.length = 0;
+      goals.length = 0;
+      Object.keys(goalProgress).forEach(function(k){ delete goalProgress[k]; });
+      dayTasks = getWeekTasks(curMon);
+      syncGoalCur();
+      render();
+      renderGoals();
+      return;
+    }
 
     // Restore meta (goals, goalProgress, pool, theme)
     var metaRow = null;
@@ -3946,27 +3957,40 @@
     var btn=aiRunEl;
     btn.disabled=true;
     btn.innerHTML='<svg class="icon icon-sm" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.2-8.6"/></svg> AI 正在梳理…';
-    setTimeout(function(){
-      var frags=raw.split(/[\n,，、；;。]+/).map(function(x){return x.trim();}).filter(function(x){return x.length>1;});
+
+    var weekDaysStr = days.map(function(d){ return d.wd + " " + d.dt; }).join("、");
+
+    fetch("/api/ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: raw, weekDays: weekDaysStr })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var tasks = data.tasks || [];
+      if(tasks.length === 0){
+        // AI 没返回结果，降级到本地解析
+        fallbackParse(raw);
+        return;
+      }
       var newIds=[], toDay=0, toPool=0;
-      frags.forEach(function(f){
-        var di=parseDay(f), tm=parseTime(f), q=guessQ(f);
-        var title=cleanTitle(f)||f;
-        var task={id:nid(),type:"task",title:title,q:q,done:false};
+      tasks.forEach(function(t){
+        var task={id:nid(), type:"task", title:t.title||"未命名任务", q:t.q||2, done:false, cat:t.cat||"work"};
+        if(t.time) task.time=t.time;
+        if(t.desc) task.desc=t.desc;
         newIds.push(task.id);
+        var di = (typeof t.day==="number" && t.day>=0 && t.day<=6) ? t.day : -1;
         if(di>=0){
-          if(tm) task.time=tm;
-          task.desc="AI：识别到"+days[di].wd+(tm?(" "+tm):"")+"，已作为 To-do 排进本周日历";
+          task.desc = task.desc || "AI 已排入"+days[di].wd+(task.time?(" "+task.time):"");
           dayTasks[di].push(task);
           toDay++;
         }else{
-          task.desc="AI：判断为「"+Q_LABEL[q]+"」，未定日期，先放任务池";
+          task.desc = task.desc || "AI：未定日期，先放任务池";
           pool.push(task);
           toPool++;
         }
       });
       render();
-      // animate newly added cards
       document.querySelectorAll(".card").forEach(function(c){ if(newIds.indexOf(c.dataset.id)>=0) c.classList.add("fade-in"); });
       inp.value="";
       btn.disabled=false;
@@ -3976,7 +4000,45 @@
       if(toDay) parts.push(toDay+" 个排进日历");
       if(toPool) parts.push(toPool+" 个进任务池");
       toast("AI 拆出 "+(toDay+toPool)+" 个任务："+parts.join("、")+" —— 点象限标签可改优先级");
-    },720);
+    })
+    .catch(function(err){
+      console.error("AI API error:", err);
+      // 网络错误时降级到本地解析
+      fallbackParse(raw);
+    });
+  }
+
+  // 本地降级解析（无网络/AI 不可用时用）
+  function fallbackParse(raw){
+    var btn=aiRunEl, inp=document.getElementById("aiInput");
+    var frags=raw.split(/[\n,，、；;。]+/).map(function(x){return x.trim();}).filter(function(x){return x.length>1;});
+    var newIds=[], toDay=0, toPool=0;
+    frags.forEach(function(f){
+      var di=parseDay(f), tm=parseTime(f), q=guessQ(f);
+      var title=cleanTitle(f)||f;
+      var task={id:nid(),type:"task",title:title,q:q,done:false};
+      newIds.push(task.id);
+      if(di>=0){
+        if(tm) task.time=tm;
+        task.desc="已排入"+days[di].wd+(tm?(" "+tm):"");
+        dayTasks[di].push(task);
+        toDay++;
+      }else{
+        task.desc="未定日期，先放任务池";
+        pool.push(task);
+        toPool++;
+      }
+    });
+    render();
+    document.querySelectorAll(".card").forEach(function(c){ if(newIds.indexOf(c.dataset.id)>=0) c.classList.add("fade-in"); });
+    inp.value="";
+    btn.disabled=false;
+    btn.innerHTML='<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> 梳理完成';
+    setTimeout(function(){ btn.innerHTML=AI_BTN_DEFAULT; },1800);
+    var parts=[];
+    if(toDay) parts.push(toDay+" 个排进日历");
+    if(toPool) parts.push(toPool+" 个进任务池");
+    toast("（本地模式）拆出 "+(toDay+toPool)+" 个任务："+parts.join("、"));
   }
 
   // ---- Model Picker ----
