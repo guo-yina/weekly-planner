@@ -4345,9 +4345,10 @@
     var inp=document.getElementById("glogInput");
     var v=inp.value.trim(); if(!v){ toast("说一句今天的感受吧～"); return; }
     var mi=inferMood(v), m=MOODS[mi];
+    var todayWd = WDS[(TODAY.getDay()+6)%7];
     var g=el("div","glog fade-in"); g.style.setProperty("--mc",m.c);
     g.innerHTML='<div class="rail"><span class="node"></span><span class="line"></span></div>'+
-      '<div class="body"><div class="meta"><span class="date">今天 · 周三</span>'+
+      '<div class="body"><div class="meta"><span class="date">今天 · '+todayWd+'</span>'+
       '<button class="mood" data-mood="'+mi+'" title="'+m.k+' · 点击修改">'+m.e+'</button></div>'+
       '<div class="txt">'+v+'</div></div>';
     var list=document.getElementById("glogList");
