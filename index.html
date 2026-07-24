@@ -1557,6 +1557,9 @@
     padding:10px;border-radius:9px;border:1px solid var(--border-strong);background:color-mix(in srgb,var(--white) 4%,transparent);color:var(--fg);transition:.16s;}
   .btn-review:hover{background:color-mix(in srgb,var(--white) 8%,transparent);border-color:var(--primary-ring);}
 
+  /* force hidden attribute to work even when display is set */
+  [hidden]{display:none !important;}
+
   /* ================= WEEKLY REPORT VIEW ================= */
   .report{flex:1;min-height:0;overflow:auto;padding:calc(var(--u)*3) calc(var(--u)*3.4) calc(var(--u)*5);
     display:flex;flex-direction:column;gap:calc(var(--u)*2.4);
@@ -2137,7 +2140,7 @@
           <span class="kbd">⌘ + Enter</span>
         </div>
         <div class="ai-field">
-          <textarea id="aiInput" aria-label="批量任务录入：用自然语言把这周想做的事写进来" spellcheck="false">这周要把需求文档 v1 写完；周四下午3点跟设计对齐视觉方案；周五上午10点开产品澄清会；有空读两章《深度工作》；报销上个月的发票别忘了。</textarea>
+          <textarea id="aiInput" aria-label="批量任务录入：用自然语言把这周想做的事写进来" spellcheck="false" placeholder="例：周三要交方案初稿；周五约了健身；有空把上次的书看完…&#10;&#10;写什么都行，AI 会帮你整理成清晰的任务卡片。"></textarea>
         </div>
         <div class="ai-actions">
           <button class="btn-ai" id="aiRun">
@@ -2218,15 +2221,15 @@
         </div>
       </section>
 
-      <!-- Weekly review teaser (hidden: reviews accessed via tabs only) -->
-      <section class="review" data-component="weekly-review" data-od-id="weekly-review" hidden>
+      <!-- Weekly review teaser (dynamic: computed from live week data) -->
+      <section class="review" data-component="weekly-review" data-od-id="weekly-review">
         <h3>本周回顾 · 预览</h3>
-        <p class="rsub">到目前为止，你把 <b>58%</b> 的时间放在了「重要」的事上 —— 这一周过得挺有分量。</p>
+        <p class="rsub" id="rvLede">还没有完成记录 —— 做完一件事，把它拖到对应的日子里试试。</p>
         <div class="qbars">
-          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q1)"></span>重要且紧急</span><span class="qtrack"><i style="width:22%;background:var(--q1)"></i></span><span class="qpct">22%</span></div>
-          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q2)"></span>重要不紧急</span><span class="qtrack"><i style="width:36%;background:var(--q2)"></i></span><span class="qpct">36%</span></div>
-          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q3)"></span>紧急不重要</span><span class="qtrack"><i style="width:28%;background:var(--q3)"></i></span><span class="qpct">28%</span></div>
-          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q4)"></span>不重要不紧急</span><span class="qtrack"><i style="width:14%;background:var(--q4)"></i></span><span class="qpct">14%</span></div>
+          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q1)"></span>重要且紧急</span><span class="qtrack"><i id="rvBar1" style="width:0%;background:var(--q1)"></i></span><span class="qpct" id="rvPct1">0%</span></div>
+          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q2)"></span>重要不紧急</span><span class="qtrack"><i id="rvBar2" style="width:0%;background:var(--q2)"></i></span><span class="qpct" id="rvPct2">0%</span></div>
+          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q3)"></span>紧急不重要</span><span class="qtrack"><i id="rvBar3" style="width:0%;background:var(--q3)"></i></span><span class="qpct" id="rvPct3">0%</span></div>
+          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q4)"></span>不重要不紧急</span><span class="qtrack"><i id="rvBar4" style="width:0%;background:var(--q4)"></i></span><span class="qpct" id="rvPct4">0%</span></div>
         </div>
         <button class="btn-review" id="goReport">
           查看完整周报
@@ -2548,6 +2551,8 @@
     authOverlay.classList.add("hidden");
     setTimeout(function(){ authOverlay.style.display="none"; }, 500);
     loadCloudData();
+    // request browser notification permission for task reminders
+    if(typeof requestNotifyPermission==="function") requestNotifyPermission();
   }
 
   // ---- Check existing session on load ----
@@ -3320,8 +3325,43 @@
           .forEach(function(t){ poolCards.appendChild(makeCard(t)); });
     }
     poolCnt.textContent = pool.length+" 件 · 未定日期";
+    renderReviewPreview();
     scheduleSave();
   }
+
+  // 侧边栏「本周回顾 · 预览」——从真实周数据动态计算四象限时间占比
+  function renderReviewPreview(){
+    var stats = weekStats(curMon);
+    // 从 perDay 里把每个已完成任务/会议的时长按四象限累加
+    var qh = [0,0,0,0]; // Q1..Q4 小时
+    (stats.perDay||[]).forEach(function(d){
+      (d.items||[]).forEach(function(it){
+        var q = it.q;
+        if(q>=1 && q<=4) qh[q-1] += (it.h||0);
+      });
+    });
+    var total = qh[0]+qh[1]+qh[2]+qh[3];
+    var lede = document.getElementById("rvLede");
+    for(var i=1;i<=4;i++){
+      var bar = document.getElementById("rvBar"+i);
+      var pct = document.getElementById("rvPct"+i);
+      var p = total>0 ? Math.round(qh[i-1]/total*100) : 0;
+      if(bar) bar.style.width = p+"%";
+      if(pct) pct.textContent = p+"%";
+    }
+    if(lede){
+      if(total<=0){
+        lede.innerHTML = "还没有完成记录 —— 做完一件事，把它拖到对应的日子里试试。";
+      } else {
+        var importantPct = Math.round((qh[0]+qh[1])/total*100);
+        var tone = importantPct>=60 ? "这一周过得挺有分量。"
+                 : importantPct>=40 ? "重心还算稳，继续保持。"
+                 : "杂事占得多了些，下周多留点时间给重要的事。";
+        lede.innerHTML = "到目前为止，你把 <b>"+importantPct+"%</b> 的时间放在了「重要」的事上 —— "+tone;
+      }
+    }
+  }
+
 
   // ---- drag state ----
   var dragId=null, dragFrom=null; // from: {kind:'pool'} or {kind:'day',i}
@@ -3889,17 +3929,27 @@
         fallbackParse(raw);
         return;
       }
-      var newIds=[], toDay=0, toPool=0;
+      var newIds=[], toDay=0, toPool=0, toNext=0;
       tasks.forEach(function(t){
         var task={id:nid(), type:"task", title:t.title||"未命名任务", q:t.q||2, done:false, cat:t.cat||"work"};
         if(t.time) task.time=t.time;
         if(t.desc) task.desc=t.desc;
         newIds.push(task.id);
-        var di = (typeof t.day==="number" && t.day>=0 && t.day<=6) ? t.day : -1;
-        if(di>=0){
+        var di = (typeof t.day==="number") ? t.day : -1;
+        if(di>=0 && di<=6){
           task.desc = task.desc || "AI 已排入"+days[di].wd+(task.time?(" "+task.time):"");
           dayTasks[di].push(task);
           toDay++;
+        }else if(di>=7 && di<=13){
+          // next week
+          var nextMon = addDays(curMon, 7);
+          var nextKey = ymd(nextMon);
+          if(!weeks[nextKey]) weeks[nextKey] = [[],[],[],[],[],[],[]];
+          var nextDi = di - 7;
+          var WDS_SHORT=["周一","周二","周三","周四","周五","周六","周日"];
+          task.desc = task.desc || "AI 已排入下"+WDS_SHORT[nextDi]+(task.time?(" "+task.time):"");
+          weeks[nextKey][nextDi].push(task);
+          toNext++;
         }else{
           task.desc = task.desc || "AI：未定日期，先放任务池";
           pool.push(task);
@@ -3913,9 +3963,10 @@
       btn.innerHTML='<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> 梳理完成';
       setTimeout(function(){ btn.innerHTML=AI_BTN_DEFAULT; },1800);
       var parts=[];
-      if(toDay) parts.push(toDay+" 个排进日历");
+      if(toDay) parts.push(toDay+" 个排进本周");
+      if(toNext) parts.push(toNext+" 个排进下周");
       if(toPool) parts.push(toPool+" 个进任务池");
-      toast("AI 拆出 "+(toDay+toPool)+" 个任务："+parts.join("、")+" —— 点象限标签可改优先级");
+      toast("AI 拆出 "+(toDay+toNext+toPool)+" 个任务："+parts.join("、")+" —— 点象限标签可改优先级");
     })
     .catch(function(err){
       console.error("AI API error:", err);
@@ -4326,6 +4377,42 @@
   tabReport.addEventListener("click",function(){ showView("report"); });
   tabMonth.addEventListener("click",function(){ showView("month"); });
   if(goReport) goReport.addEventListener("click",function(){ showView("report"); });
+
+  // ---- task reminder: browser notifications ----
+  var notifiedSet = {}; // key = "YYYY-M-D_index" to avoid repeat alerts
+  function requestNotifyPermission(){
+    if(!("Notification" in window)) return;
+    if(Notification.permission === "default"){
+      Notification.requestPermission();
+    }
+  }
+  function checkReminders(){
+    if(!("Notification" in window) || Notification.permission !== "granted") return;
+    var now = new Date();
+    var todayIdx = (now.getDay()+6)%7; // 0=Mon ... 6=Sun
+    var hh = now.getHours(), mm = now.getMinutes();
+    var nowTime = (hh<10?"0":"")+hh+":"+(mm<10?"0":"")+mm;
+    var todayKey = ymd(curMon)+"_"+todayIdx;
+    var dayTasks = getWeekTasks(curMon)[todayIdx] || [];
+    dayTasks.forEach(function(task, i){
+      if(!task.time || task.done) return;
+      if(task.time !== nowTime) return;
+      var nk = todayKey+"_"+i;
+      if(notifiedSet[nk]) return;
+      notifiedSet[nk] = true;
+      var body = task.desc || "该开始了！";
+      new Notification("⏰ "+task.t, {
+        body: body,
+        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏰</text></svg>"
+      });
+    });
+  }
+  // ask permission after login
+  if(currentUser) requestNotifyPermission();
+  // check every 60 seconds
+  setInterval(checkReminders, 60000);
+  // also check once on load
+  setTimeout(checkReminders, 3000);
 
   // ---- palette / color scheme switcher (in-memory only) ----
   var THEMES=[
