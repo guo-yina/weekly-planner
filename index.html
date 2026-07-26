@@ -1088,6 +1088,13 @@
   .btn-model .caret{width:12px;height:12px;opacity:.5;transition:transform .14s;}
   .btn-model.open .caret{transform:rotate(180deg);}
 
+  /* current AI model — read-only display (no fake picker/config) */
+  .ai-model-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;
+    padding:7px 12px;border-radius:8px;border:1px solid var(--border-strong);
+    background:var(--surface-2);color:var(--muted);cursor:default;}
+  .ai-model-badge .icon{opacity:.7;}
+  .ai-model-badge b{color:var(--fg);font-weight:600;}
+
   /* model picker panel */
   .model-picker{position:absolute;z-index:500;width:320px;padding:12px 0;
     background:color-mix(in srgb,var(--surface-3) 96%,var(--white) 2%);
@@ -1605,7 +1612,7 @@
 
   /* report grid */
   .rp-grid{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*1.8);align-items:start;}
-  .rp-cat,.rp-daily,.rp-hi{grid-column:1 / -1;}
+  .rp-cat,.rp-daily,.rp-hi,.rp-ai{grid-column:1 / -1;}
   .mrp-rhythm{grid-column:1 / -1;}
 
   /* monthly review — weekly rhythm chart */
@@ -1724,6 +1731,24 @@
   .ai-ic{width:22px;height:22px;border-radius:6px;flex:none;display:grid;place-items:center;margin-top:1px;
     color:var(--sc,var(--primary));background:color-mix(in srgb,var(--sc,var(--primary)) 13%,transparent);
     border:1px solid color-mix(in srgb,var(--sc,var(--primary)) 24%,transparent);}
+
+  /* weekly AI coach commentary */
+  .rp-coach{border:1px solid var(--border);border-radius:12px;padding:calc(var(--u)*1.8);margin-bottom:calc(var(--u)*2);
+    background:linear-gradient(180deg,color-mix(in srgb,var(--q2) 7%,var(--surface-2)),var(--surface-2));}
+  .rp-coach-head{display:flex;align-items:center;gap:10px;margin-bottom:calc(var(--u)*1.3);}
+  .rp-coach-av{width:30px;height:30px;border-radius:9px;flex:none;display:grid;place-items:center;
+    color:var(--q2);background:color-mix(in srgb,var(--q2) 15%,transparent);
+    border:1px solid color-mix(in srgb,var(--q2) 28%,transparent);}
+  .rp-coach-meta{display:flex;flex-direction:column;line-height:1.25;}
+  .rp-coach-meta b{font-size:13px;color:var(--fg);font-weight:600;}
+  .rp-coach-meta small{font-size:11px;color:var(--subtle);}
+  .rp-coach-redo{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;transition:.15s;}
+  .rp-coach-redo:hover{color:var(--fg);border-color:var(--border-strong);}
+  .rp-coach-redo:disabled{opacity:.55;cursor:default;}
+  .rp-coach-body{margin:0;font-size:13px;line-height:1.75;color:var(--fg);white-space:pre-line;}
+  .rp-coach.thinking .rp-coach-body{color:var(--subtle);animation:coachPulse 1.2s ease-in-out infinite;}
+  @keyframes coachPulse{0%,100%{opacity:.55;}50%{opacity:.9;}}
 
   /* week highlights */
   .hi-list{display:flex;flex-direction:column;gap:calc(var(--u)*1.5);}
@@ -2143,18 +2168,17 @@
           <span class="kbd">⌘ + Enter</span>
         </div>
         <div class="ai-field">
-          <textarea id="aiInput" aria-label="批量任务录入：用自然语言把这周想做的事写进来" spellcheck="false" placeholder="例：周三要交方案初稿；周五约了健身；有空把上次的书看完…&#10;&#10;写什么都行，AI 会帮你整理成清晰的任务卡片。"></textarea>
+          <textarea id="aiInput" aria-label="批量任务录入：用自然语言把这周想做的事写进来" spellcheck="false" placeholder="例：周三要交方案初稿；周五约了健身；有空把上次的书看完…&#10;也可以说：删掉周日的所有日程 / 删掉设计评审&#10;&#10;写什么都行，AI 会帮你整理成任务，也能帮你删。"></textarea>
         </div>
         <div class="ai-actions">
           <button class="btn-ai" id="aiRun">
             <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             AI 梳理成任务
           </button>
-          <button class="btn-model" id="modelBtn" title="切换 AI 模型">
+          <span class="ai-model-badge" title="当前 AI 模型 · 由后台固定">
             <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 2a4 4 0 014 4v1a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="12" cy="10" r="3"/></svg>
-            <span id="modelName">Qwen3.8-Max</span>
-            <svg class="icon icon-sm caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
+            通义千问 <b>qwen-max</b>
+          </span>
           <span class="ai-note">
             <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>
             分错了？直接拖动卡片，或<b>跟 AI 说一句</b>让它改。
@@ -2181,6 +2205,10 @@
           <svg class="icon dot-ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
           <h2>本周计划</h2>
           <span class="hint">已排期的会带上时间；其余只记「哪天做的」，做完拖到那天就好。</span>
+          <button type="button" class="dt-sync sec-end" id="calSyncBtn" title="到点前 5 分钟弹系统通知提醒你（记得让这个网页开着）">
+            <svg class="dt-sync-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="dt-sync-tx">开启提醒</span>
+          </button>
         </div>
         <div class="grid-days" id="grid"></div>
       </section>
@@ -2285,6 +2313,24 @@
     </section>
 
     <div class="rp-grid">
+      <!-- AI retrospective (moved to top) -->
+      <section class="panel rp-ai" data-od-id="report-ai">
+        <div class="sec-head">
+          <svg class="icon dot-ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>
+          <h2>AI 复盘</h2>
+          <span class="hint">温和的观察，不是打分</span>
+        </div>
+        <div class="rp-coach" id="rpCoach">
+          <div class="rp-coach-head">
+            <span class="rp-coach-av"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 2a4 4 0 014 4v1a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="12" cy="10" r="3"/></svg></span>
+            <span class="rp-coach-meta"><b>本周点评</b><small id="rpCoachSub">来自你的 AI 时间教练</small></span>
+            <button class="rp-coach-redo" id="rpCoachRedo" type="button" title="重新生成一段点评"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>重新生成</button>
+          </div>
+          <p class="rp-coach-body" id="rpCoachBody">正在为你写点评…</p>
+        </div>
+        <ul class="ai-list" id="rpAiList"></ul>
+      </section>
+
       <!-- AI-grouped completed items + time spent -->
       <section class="panel rp-cat" data-component="report-categories" data-od-id="report-categories">
         <div class="sec-head">
@@ -2316,16 +2362,6 @@
           <h2>目标达成</h2>
         </div>
         <div id="rpGoalList"></div>
-      </section>
-
-      <!-- AI retrospective -->
-      <section class="panel rp-ai" data-od-id="report-ai">
-        <div class="sec-head">
-          <svg class="icon dot-ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>
-          <h2>AI 复盘</h2>
-          <span class="hint">温和的观察，不是打分</span>
-        </div>
-        <ul class="ai-list" id="rpAiList"></ul>
       </section>
 
       <!-- week highlights (from growth log) -->
@@ -3920,10 +3956,35 @@
     if(g) toast("已删除「"+g.title+"」");
   }
 
+  // AI 从口语里识别出的「每周 N 次」习惯 → 直接建一个每周循环的打卡目标，进度按周自动归零
+  function addCheckinGoal(title, n, cat){
+    var tgt=Math.max(1,Math.min(Math.round(n),99));
+    // 去重：同名的循环打卡目标已存在就直接复用，不再重复创建
+    var wantTitle=(title||"打卡习惯");
+    for(var gi=0;gi<goals.length;gi++){
+      if(goals[gi] && goals[gi].recurring && (goals[gi].title||"")===wantTitle) return goals[gi];
+    }
+    var gc=(CATS[cat] && CATS[cat].color) || "var(--q2)";
+    var ng={id:nid(), title:title||"打卡习惯", tgt:tgt, step:1, unit:"次", gc:gc, scope:"week", recurring:true};
+    ng.homeKey=periodOf(ng);
+    ng.cur=0;
+    goals.push(ng);
+    return ng;
+  }
+
   // ---- AI intake: natural-language parse → week grid (dated) or pool (undated) ----
   var WD_IDX={"一":0,"二":1,"三":2,"四":3,"五":4,"六":5,"日":6,"天":6};
   function todayIdx(){ for(var i=0;i<days.length;i++) if(days[i].today) return i; return 0; }
   function pad2(n){ return (n<10?"0":"")+n; }
+  // 判断某个容器里是否已经有「一模一样」的事项（同名 + 同时间），用于避免重复添加
+  function taskExists(arr, title, time){
+    var tt=(title||"").trim(), tm=time||"";
+    for(var i=0;i<(arr||[]).length;i++){
+      var t=arr[i];
+      if((t.title||"").trim()===tt && (t.time||"")===tm) return true;
+    }
+    return false;
+  }
   function parseDay(s){
     if(/今[天日]/.test(s)) return todayIdx();
     if(/明[天日]/.test(s)) return Math.min(6,todayIdx()+1);
@@ -3968,14 +4029,313 @@
       .replace(/^[\s,，、;；.。:：的]+|[\s,，、;；.。:：]+$/g,"")
       .trim();
   }
+  // 从一段话里提取「次数」（支持阿拉伯数字和中文数字），没有就返回 0
+  function cnNum(s){
+    var map={零:0,一:1,二:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9,十:10};
+    var m=s.match(/(\d+)\s*次/);
+    if(m) return +m[1];
+    var cm=s.match(/([一二两三四五六七八九十]+)\s*次/);
+    if(!cm) return 0;
+    var t=cm[1];
+    if(t==="十") return 10;
+    if(t.length===1) return map[t]||0;
+    if(t.charAt(0)==="十") return 10+(map[t.charAt(1)]||0);
+    if(t.indexOf("十")>0){
+      var parts=t.split("十");
+      return (map[parts[0]]||0)*10 + (parts[1]?(map[parts[1]]||0):0);
+    }
+    return map[t]||0;
+  }
+  // 判断是不是「打卡习惯」句子，是就返回目标次数（1-7），否则 0
+  function parseCheckin(f){
+    var n=cnNum(f);
+    if(n<1) return 0;
+    var isHabit = /打卡/.test(f) ||
+      ((/每周|每星期|这周|本周|一周/.test(f)) && /健身|跑步|锻炼|运动|读书|看书|背单词|单词|冥想|打坐|练|学习|喝水|早起|写作|复盘|瑜伽|游泳|散步|走路/.test(f));
+    if(!isHabit) return 0;
+    return Math.min(n,7);
+  }
+  // 打卡卡片的标题清洗：去掉「每周/这周/N次/打卡」等
+  function checkinTitle(f){
+    var s=cleanTitle(f)
+      .replace(/每周|每星期|这周|本周|一周/g,"")
+      .replace(/\d+\s*次|[一二两三四五六七八九十]+\s*次/g,"")
+      .replace(/打卡/g,"")
+      .replace(/^[\s,，、;；.。:：的要想]+|[\s,，、;；.。:：]+$/g,"")
+      .trim();
+    return s || "打卡习惯";
+  }
+  function guessCat(s){
+    if(/健身|跑步|锻炼|运动|瑜伽|游泳|散步|走路|打球|健走/.test(s)) return "fitness";
+    if(/学习|读书|看书|背单词|单词|课程|复习|笔记/.test(s)) return "study";
+    if(/喝水|早起|睡|冥想|打坐|护肤|吃药/.test(s)) return "life";
+    return "fitness";
+  }
   var AI_BTN_DEFAULT='<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg> AI 梳理成任务';
   var aiRunEl=document.getElementById("aiRun");
   aiRunEl.addEventListener("click",runAI);
   document.getElementById("aiInput").addEventListener("keydown",function(e){ if((e.metaKey||e.ctrlKey)&&e.key==="Enter"){ runAI(); }});
+
+  // ========== 用嘴管理日程：删除指令（本地判定优先，删前必确认，可撤销） ==========
+  // 从一句话里判断是不是「删除类」指令，并抽出：删哪几天 / 是否整周 / 上午下午 / 关键词
+  function detectDeleteIntent(raw){
+    var s=(raw||"").trim();
+    if(!/删除|删掉|删了|清空|清掉|移除|去除|清一清/.test(s)) return null;
+    // 整周（"清空这周"、"本周全部删掉"），但句子里若点名了具体星期几就不算整周
+    var hasNamedDay=/(?:周|礼拜|星期)[一二三四五六日天]/.test(s);
+    var allWeek = !hasNamedDay && /整周|清空(这|本)?周|(这|本)周(全部|所有|都)|一整周|全部日程|所有日程/.test(s);
+    // 具体星期几（可多个）
+    var days=[], m, re=/(?:周|礼拜|星期)([一二三四五六日天])/g;
+    while((m=re.exec(s))){ var idx=WD_IDX[m[1]]; if(idx!=null && days.indexOf(idx)<0) days.push(idx); }
+    // 范围写法（"周一到周五"、"周一至周三"、"周一~周四"）→ 展开成区间内的每一天
+    var rangeRe=/(?:周|礼拜|星期)([一二三四五六日天])\s*(?:到|至|~|～|—|－|-)\s*(?:周|礼拜|星期)?([一二三四五六日天])/g;
+    while((m=rangeRe.exec(s))){
+      var a=WD_IDX[m[1]], b=WD_IDX[m[2]];
+      if(a!=null && b!=null){
+        var lo=Math.min(a,b), hi=Math.max(a,b);
+        for(var d=lo; d<=hi; d++){ if(days.indexOf(d)<0) days.push(d); }
+      }
+    }
+    if(/今[天日]/.test(s)){ var ti=todayIdx(); if(days.indexOf(ti)<0) days.push(ti); }
+    if(/明[天日]/.test(s)){ var mi=Math.min(6,todayIdx()+1); if(days.indexOf(mi)<0) days.push(mi); }
+    if(/后天/.test(s)){ var hi=Math.min(6,todayIdx()+2); if(days.indexOf(hi)<0) days.push(hi); }
+    // 上午 / 下午
+    var part=""; if(/上午|早上|早晨/.test(s)) part="am"; else if(/下午|晚上|傍晚|晚间/.test(s)) part="pm";
+    // 关键词：删掉某个具体事项（去掉指令词、时间词、"所有/日程"等修饰后剩下的）
+    var kw=s.replace(/删除掉|删除|删掉|删了|清空|清掉|移除|去除|清一清/g,"")
+            .replace(/(?:周|礼拜|星期)[一二三四五六日天]/g,"")
+            .replace(/今[天日]|明[天日]|后天/g,"")
+            .replace(/到|至|~|～|—|－/g,"")
+            .replace(/上午|早上|早晨|下午|晚上|傍晚|晚间|中午/g,"")
+            .replace(/所有|全部|整周|这周|本周|一周|一整周|的|日程|安排|任务|事项|会议|会|日历|都|把|请|帮我|一下|吧|了|，|,|。|、/g,"")
+            .trim();
+    if(kw.length<2) kw="";
+    if(!allWeek && days.length===0 && !kw) return {ambiguous:true};
+    return {days:days, allWeek:allWeek, part:part, keyword:kw};
+  }
+  // 把 API 返回的删除意图规整成本地过滤器
+  function normalizeApiDelete(d){
+    if(!d) return {ambiguous:true};
+    var days=Array.isArray(d.days)?d.days.filter(function(x){return x>=0&&x<=6;}):[];
+    var f={days:days, allWeek:!!d.allWeek, part:d.part||"", keyword:d.keyword||""};
+    if(!f.allWeek && !f.days.length && !f.keyword) f.ambiguous=true;
+    return f;
+  }
+  // 按过滤器在「本周计划」里找出要删的任务
+  function collectDeleteMatches(f){
+    var scope = f.allWeek ? [0,1,2,3,4,5,6] : (f.days && f.days.length ? f.days : [0,1,2,3,4,5,6]);
+    var res=[];
+    scope.forEach(function(i){
+      (dayTasks[i]||[]).forEach(function(t){
+        if(f.keyword && (t.title||"").indexOf(f.keyword)<0) return;
+        if(f.part){
+          if(!t.time) return;
+          var hh=parseInt(t.time.split(":")[0],10);
+          if(f.part==="am" && hh>=12) return;
+          if(f.part==="pm" && hh<12) return;
+        }
+        res.push({dayIdx:i, task:t});
+      });
+    });
+    return res;
+  }
+  function doDeleteMatches(matches){
+    var removed=matches.map(function(m){ return {dayIdx:m.dayIdx, task:m.task}; });
+    removed.forEach(function(r){
+      var arr=dayTasks[r.dayIdx], idx=arr.indexOf(r.task);
+      if(idx>=0) arr.splice(idx,1);
+    });
+    render();
+    toast("已删除 "+removed.length+" 条日程",{label:"撤销",fn:function(){
+      removed.forEach(function(r){ dayTasks[r.dayIdx].push(r.task); });
+      render(); toast("已恢复 "+removed.length+" 条");
+    }});
+  }
+  // 删前确认弹窗：列出要删的每一条，点「确认删除」才动手
+  function openDeleteConfirm(matches){
+    var WDS_L=["周一","周二","周三","周四","周五","周六","周日"];
+    var ov=document.createElement("div");
+    ov.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;padding:20px;";
+    var box=document.createElement("div");
+    box.style.cssText="background:#ffffff;color:#1f2430;width:min(420px,92vw);max-height:78vh;overflow:auto;border-radius:16px;padding:22px 22px 18px;box-shadow:0 20px 60px rgba(0,0,0,.28);border:1px solid #ececf0;";
+    var h=document.createElement("div"); h.style.cssText="font-size:16px;font-weight:700;margin-bottom:6px;color:#1f2430;"; h.textContent="确认删除这些日程？";
+    var sub=document.createElement("div"); sub.style.cssText="font-size:13px;color:#6b7280;margin-bottom:14px;"; sub.textContent="共 "+matches.length+" 条，删除后可点底部提示里的「撤销」找回";
+    var list=document.createElement("div"); list.style.cssText="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;";
+    matches.forEach(function(m){
+      var row=document.createElement("div");
+      row.style.cssText="display:flex;align-items:center;gap:10px;font-size:13px;padding:8px 10px;border-radius:9px;background:#f4f4f7;color:#1f2430;";
+      var day=document.createElement("span"); day.style.cssText="font-weight:600;color:#5b5bd6;flex:0 0 auto;"; day.textContent=WDS_L[m.dayIdx];
+      var tt=document.createElement("span"); tt.style.cssText="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1f2430;";
+      tt.textContent=(m.task.time?m.task.time+"  ":"")+(m.task.title||"未命名")+(m.task.type==="meeting"?"（钉钉日程）":"");
+      row.appendChild(day); row.appendChild(tt); list.appendChild(row);
+    });
+    var bar=document.createElement("div"); bar.style.cssText="display:flex;gap:10px;justify-content:flex-end;";
+    var cancel=document.createElement("button"); cancel.type="button"; cancel.textContent="取消";
+    cancel.style.cssText="padding:8px 16px;border-radius:9px;border:1px solid #d8d8de;background:#ffffff;color:#3a3f4b;font-weight:600;cursor:pointer;font-size:13px;";
+    var ok=document.createElement("button"); ok.type="button"; ok.textContent="确认删除 "+matches.length+" 条";
+    ok.style.cssText="padding:8px 16px;border-radius:9px;border:none;background:#e5484d;color:#fff;font-weight:600;cursor:pointer;font-size:13px;";
+    bar.appendChild(cancel); bar.appendChild(ok);
+    box.appendChild(h); box.appendChild(sub); box.appendChild(list); box.appendChild(bar);
+    ov.appendChild(box); document.body.appendChild(ov);
+    function close(){ if(ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener("keydown",onKey); }
+    function onKey(e){ if(e.key==="Escape") close(); }
+    document.addEventListener("keydown",onKey);
+    ov.addEventListener("mousedown",function(e){ if(e.target===ov) close(); });
+    cancel.addEventListener("click",close);
+    ok.addEventListener("click",function(){ close(); doDeleteMatches(matches); });
+  }
+  // 删除意图统一入口
+  function handleDeleteIntent(f){
+    var inp=document.getElementById("aiInput");
+    if(!f || f.ambiguous){ toast("想删哪些呢？可以说「删掉周日的所有日程」或「删掉设计评审」"); return; }
+    var matches=collectDeleteMatches(f);
+    if(!matches.length){ toast("没找到符合条件的日程，换个说法再试试～"); return; }
+    if(inp) inp.value="";
+    openDeleteConfirm(matches);
+  }
+
+  // ========== 用嘴管理日程：修改/移动日程（把某件事挪到别的一天 / 改时间，不删除） ==========
+  // 从一句话里判断是不是「修改/移动类」指令，抽出：改哪件事 / 从哪天 / 挪到哪天 / 改到什么时间
+  function detectMoveIntent(raw){
+    var s=(raw||"").trim();
+    // 删除类优先，这里不抢
+    if(/删除|删掉|删了|清空|清掉|移除|去除|清一清/.test(s)) return null;
+    // 触发词：改到 / 移到 / 挪到 / 调到 / 换到 / 改成 / 推迟到 / 提前到 …
+    var arrowRe=/(改到|改成|改为|改至|移到|移至|移动到|挪到|挪至|调到|调至|调整到|调整为|换到|换成|推迟到|提前到|顺延到)/;
+    var am=s.match(arrowRe);
+    if(!am) return null;
+    var idx=s.lastIndexOf(am[0]);
+    var before=s.slice(0,idx);
+    var after=s.slice(idx+am[0].length);
+    // 目标：新的一天 / 新的时间（两者可只有其一）
+    var destDay=parseDay(after);
+    var destTime=parseTime(after);
+    // 源：从「从周X」里取源日期（可选），或 before 里直接出现的周几
+    var srcDay=-1;
+    var fromM=before.match(/从\s*((?:周|礼拜|星期)[一二三四五六日天]|今[天日]|明[天日]|后天)/);
+    if(fromM){ srcDay=parseDay(fromM[1]); }
+    else{
+      var bd=before.match(/(?:周|礼拜|星期)[一二三四五六日天]|今[天日]|明[天日]|后天/);
+      if(bd) srcDay=parseDay(bd[0]);
+    }
+    // 关键词：事项名（去掉 把/从/周几/时间词/日程等修饰后剩下的）
+    var kw=before
+      .replace(/从\s*(?:周|礼拜|星期)[一二三四五六日天]/g,"")
+      .replace(/从\s*(今[天日]|明[天日]|后天)/g,"")
+      .replace(/(?:周|礼拜|星期)[一二三四五六日天]/g,"")
+      .replace(/今[天日]|明[天日]|后天/g,"")
+      .replace(/凌晨|上午|早上|早晨|中午|下午|晚上|傍晚|晚间/g,"")
+      .replace(/\d{1,2}\s*[:：]\s*\d{1,2}/g,"")
+      .replace(/\d{1,2}\s*点(半)?/g,"")
+      .replace(/的|日程|安排|任务|事项|会议|日历|这个|那个|一下|请|帮我|吧|了|把|从|，|,|。|、/g,"")
+      .trim();
+    if(kw.length<2) kw="";
+    if(destDay<0 && !destTime) return {ambiguous:true, reason:"no-dest"};
+    if(!kw) return {ambiguous:true, reason:"no-kw"};
+    return {keyword:kw, srcDay:srcDay, destDay:destDay, destTime:destTime};
+  }
+  // 按关键词（可限定源日期）在「本周计划」里找出要改的任务
+  function collectMoveMatches(f){
+    var scope = f.srcDay>=0 ? [f.srcDay] : [0,1,2,3,4,5,6];
+    var res=[];
+    scope.forEach(function(i){
+      (dayTasks[i]||[]).forEach(function(t){
+        if(f.keyword && (t.title||"").indexOf(f.keyword)<0) return;
+        res.push({dayIdx:i, task:t});
+      });
+    });
+    return res;
+  }
+  function doMoveMatches(matches, destDay, destTime){
+    var moved=matches.map(function(m){
+      return {fromDay:m.dayIdx, task:m.task, oldTime:m.task.time, toDay:(destDay>=0?destDay:m.dayIdx)};
+    });
+    moved.forEach(function(r){
+      if(destTime) r.task.time=destTime;
+      if(r.toDay!==r.fromDay){
+        var arr=dayTasks[r.fromDay], i=arr.indexOf(r.task);
+        if(i>=0) arr.splice(i,1);
+        dayTasks[r.toDay].push(r.task);
+      }
+    });
+    render();
+    toast("已调整 "+moved.length+" 条日程",{label:"撤销",fn:function(){
+      moved.forEach(function(r){
+        if(destTime){ if(r.oldTime) r.task.time=r.oldTime; else delete r.task.time; }
+        if(r.toDay!==r.fromDay){
+          var arr=dayTasks[r.toDay], i=arr.indexOf(r.task);
+          if(i>=0) arr.splice(i,1);
+          dayTasks[r.fromDay].push(r.task);
+        }
+      });
+      render(); toast("已还原 "+moved.length+" 条");
+    }});
+  }
+  // 修改前确认弹窗：列出每一条「原来 → 之后」，点「确认调整」才动手
+  function openMoveConfirm(matches, destDay, destTime){
+    var WDS_L=["周一","周二","周三","周四","周五","周六","周日"];
+    var destDesc=(destDay>=0?WDS_L[destDay]:"原来那天")+(destTime?(" "+destTime):"");
+    var ov=document.createElement("div");
+    ov.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;padding:20px;";
+    var box=document.createElement("div");
+    box.style.cssText="background:#ffffff;color:#1f2430;width:min(440px,92vw);max-height:78vh;overflow:auto;border-radius:16px;padding:22px 22px 18px;box-shadow:0 20px 60px rgba(0,0,0,.28);border:1px solid #ececf0;";
+    var h=document.createElement("div"); h.style.cssText="font-size:16px;font-weight:700;margin-bottom:6px;color:#1f2430;"; h.textContent="确认调整这些日程？";
+    var sub=document.createElement("div"); sub.style.cssText="font-size:13px;color:#6b7280;margin-bottom:14px;"; sub.textContent="共 "+matches.length+" 条，调整后可点底部提示里的「撤销」还原";
+    var list=document.createElement("div"); list.style.cssText="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;";
+    matches.forEach(function(m){
+      var row=document.createElement("div");
+      row.style.cssText="display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 10px;border-radius:9px;background:#f4f4f7;color:#1f2430;flex-wrap:wrap;";
+      var tt=document.createElement("span"); tt.style.cssText="font-weight:600;color:#1f2430;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;";
+      tt.textContent=(m.task.title||"未命名")+(m.task.type==="meeting"?"（钉钉日程）":"");
+      var from=document.createElement("span"); from.style.cssText="color:#6b7280;flex:0 0 auto;";
+      from.textContent=WDS_L[m.dayIdx]+(m.task.time?(" "+m.task.time):"");
+      var arw=document.createElement("span"); arw.style.cssText="color:#5b5bd6;font-weight:700;flex:0 0 auto;"; arw.textContent="→";
+      var to=document.createElement("span"); to.style.cssText="color:#5b5bd6;font-weight:600;flex:0 0 auto;"; to.textContent=destDesc;
+      row.appendChild(tt); row.appendChild(from); row.appendChild(arw); row.appendChild(to);
+      list.appendChild(row);
+    });
+    var bar=document.createElement("div"); bar.style.cssText="display:flex;gap:10px;justify-content:flex-end;";
+    var cancel=document.createElement("button"); cancel.type="button"; cancel.textContent="取消";
+    cancel.style.cssText="padding:8px 16px;border-radius:9px;border:1px solid #d8d8de;background:#ffffff;color:#3a3f4b;font-weight:600;cursor:pointer;font-size:13px;";
+    var ok=document.createElement("button"); ok.type="button"; ok.textContent="确认调整 "+matches.length+" 条";
+    ok.style.cssText="padding:8px 16px;border-radius:9px;border:none;background:#5b5bd6;color:#fff;font-weight:600;cursor:pointer;font-size:13px;";
+    bar.appendChild(cancel); bar.appendChild(ok);
+    box.appendChild(h); box.appendChild(sub); box.appendChild(list); box.appendChild(bar);
+    ov.appendChild(box); document.body.appendChild(ov);
+    function close(){ if(ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener("keydown",onKey); }
+    function onKey(e){ if(e.key==="Escape") close(); }
+    document.addEventListener("keydown",onKey);
+    ov.addEventListener("mousedown",function(e){ if(e.target===ov) close(); });
+    cancel.addEventListener("click",close);
+    ok.addEventListener("click",function(){ close(); doMoveMatches(matches, destDay, destTime); });
+  }
+  // 修改意图统一入口
+  function handleMoveIntent(f){
+    var inp=document.getElementById("aiInput");
+    if(!f || f.ambiguous){
+      if(f && f.reason==="no-dest") toast("要改到什么时候呢？比如「把部门周会从周一改到周三」或「改到周三下午3点」");
+      else toast("想改哪件事呢？比如「把设计评审从周二改到周四」");
+      return;
+    }
+    var matches=collectMoveMatches(f);
+    if(!matches.length){ toast("没找到「"+f.keyword+"」这件事，写全名字或换个说法再试试～"); return; }
+    if(inp) inp.value="";
+    openMoveConfirm(matches, f.destDay, f.destTime);
+  }
+
   function runAI(){
     var inp=document.getElementById("aiInput");
     var raw=inp.value.trim();
     if(!raw){ toast("先把想做的事写几句进来～"); return; }
+
+    // 修改/移动类指令：本地先判定（把某件事挪到别的一天或改时间，不删除、不新建），命中就不再走「梳理成任务」
+    var moveIntent=detectMoveIntent(raw);
+    if(moveIntent){ handleMoveIntent(moveIntent); return; }
+
+    // 删除类指令：本地先判定（安全、可离线，删前必确认），命中就不再走「梳理成任务」
+    var delIntent=detectDeleteIntent(raw);
+    if(delIntent){ handleDeleteIntent(delIntent); return; }
+
     var btn=aiRunEl;
     btn.disabled=true;
     btn.innerHTML='<svg class="icon icon-sm" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.2-8.6"/></svg> AI 正在梳理…';
@@ -3992,21 +4352,36 @@
     })
     .then(function(r){ return r.json(); })
     .then(function(data){
+      // 防御：万一本地没判出、但 AI 认定是删除指令，也走删除确认流程
+      if(data && data.action==="delete"){
+        btn.disabled=false; btn.innerHTML=AI_BTN_DEFAULT;
+        handleDeleteIntent(normalizeApiDelete(data.delete));
+        return;
+      }
       var tasks = data.tasks || [];
       if(tasks.length === 0){
         // AI 没返回结果，降级到本地解析
         fallbackParse(raw);
         return;
       }
-      var newIds=[], toDay=0, toPool=0, toNext=0;
+      var newIds=[], toDay=0, toPool=0, toNext=0, toCheck=0, toDup=0;
       tasks.forEach(function(t){
+        // 打卡习惯：AI 返回 checkin>=1 时，直接进右侧「目标打卡」，每周循环、按周归零
+        var ck = (typeof t.checkin==="number" && t.checkin>=1) ? Math.min(t.checkin,7) : 0;
+        if(ck>=1){
+          addCheckinGoal(t.title||"打卡习惯", ck, t.cat||"fitness");
+          toCheck++;
+          return;
+        }
         var task={id:nid(), type:"task", title:t.title||"未命名任务", q:t.q||2, done:false, cat:t.cat||"work"};
         if(t.time) task.time=t.time;
         if(t.desc) task.desc=t.desc;
-        newIds.push(task.id);
         var di = (typeof t.day==="number") ? t.day : -1;
         if(di>=0 && di<=6){
+          // 一模一样（同名、同一天、同时间）的就跳过，不重复添加
+          if(taskExists(dayTasks[di], task.title, task.time)){ toDup++; return; }
           task.desc = task.desc || "AI 已排入"+days[di].wd+(task.time?(" "+task.time):"");
+          newIds.push(task.id);
           dayTasks[di].push(task);
           toDay++;
         }else if(di>=7 && di<=13){
@@ -4015,17 +4390,22 @@
           var nextKey = ymd(nextMon);
           if(!weeks[nextKey]) weeks[nextKey] = [[],[],[],[],[],[],[]];
           var nextDi = di - 7;
+          if(taskExists(weeks[nextKey][nextDi], task.title, task.time)){ toDup++; return; }
           var WDS_SHORT=["周一","周二","周三","周四","周五","周六","周日"];
           task.desc = task.desc || "AI 已排入下"+WDS_SHORT[nextDi]+(task.time?(" "+task.time):"");
+          newIds.push(task.id);
           weeks[nextKey][nextDi].push(task);
           toNext++;
         }else{
+          if(taskExists(pool, task.title, task.time)){ toDup++; return; }
           task.desc = task.desc || "AI：未定日期，先放任务池";
+          newIds.push(task.id);
           pool.push(task);
           toPool++;
         }
       });
       render();
+      if(toCheck) renderGoals();
       document.querySelectorAll(".card").forEach(function(c){ if(newIds.indexOf(c.dataset.id)>=0) c.classList.add("fade-in"); });
       inp.value="";
       btn.disabled=false;
@@ -4035,7 +4415,15 @@
       if(toDay) parts.push(toDay+" 个排进本周");
       if(toNext) parts.push(toNext+" 个排进下周");
       if(toPool) parts.push(toPool+" 个进任务池");
-      toast("AI 拆出 "+(toDay+toNext+toPool)+" 个任务："+parts.join("、")+" —— 点象限标签可改优先级");
+      if(toCheck) parts.push(toCheck+" 个打卡目标（已放进右侧目标打卡）");
+      var totalAdded=toDay+toNext+toPool+toCheck;
+      if(totalAdded===0 && toDup>0){
+        toast("这 "+toDup+" 条你已经安排过了，没重复添加～");
+      }else{
+        var msg="AI 拆出 "+totalAdded+" 个事项："+parts.join("、");
+        if(toDup>0) msg+="；另有 "+toDup+" 条重复，已自动跳过";
+        toast(msg);
+      }
     })
     .catch(function(err){
       console.error("AI API error:", err);
@@ -4048,24 +4436,35 @@
   function fallbackParse(raw){
     var btn=aiRunEl, inp=document.getElementById("aiInput");
     var frags=raw.split(/[\n,，、；;。]+/).map(function(x){return x.trim();}).filter(function(x){return x.length>1;});
-    var newIds=[], toDay=0, toPool=0;
+    var newIds=[], toDay=0, toPool=0, toCheck=0, toDup=0;
     frags.forEach(function(f){
+      // 先看是不是打卡习惯（每周 N 次）→ 建成右侧「目标打卡」
+      var ck=parseCheckin(f);
+      if(ck>=1){
+        addCheckinGoal(checkinTitle(f), ck, guessCat(f));
+        toCheck++;
+        return;
+      }
       var di=parseDay(f), tm=parseTime(f), q=guessQ(f);
       var title=cleanTitle(f)||f;
       var task={id:nid(),type:"task",title:title,q:q,done:false};
-      newIds.push(task.id);
       if(di>=0){
         if(tm) task.time=tm;
+        if(taskExists(dayTasks[di], task.title, task.time)){ toDup++; return; }
         task.desc="已排入"+days[di].wd+(tm?(" "+tm):"");
+        newIds.push(task.id);
         dayTasks[di].push(task);
         toDay++;
       }else{
+        if(taskExists(pool, task.title, task.time)){ toDup++; return; }
         task.desc="未定日期，先放任务池";
+        newIds.push(task.id);
         pool.push(task);
         toPool++;
       }
     });
     render();
+    if(toCheck) renderGoals();
     document.querySelectorAll(".card").forEach(function(c){ if(newIds.indexOf(c.dataset.id)>=0) c.classList.add("fade-in"); });
     inp.value="";
     btn.disabled=false;
@@ -4074,253 +4473,21 @@
     var parts=[];
     if(toDay) parts.push(toDay+" 个排进日历");
     if(toPool) parts.push(toPool+" 个进任务池");
-    toast("（本地模式）拆出 "+(toDay+toPool)+" 个任务："+parts.join("、"));
-  }
-
-  // ---- Model Picker ----
-  var AI_MODELS=[
-    {id:"qwen38max",name:"Qwen3.8-Max",desc:"通义千问旗舰模型，深度推理办公首选",tier:"pro",cost:"0.05X",badge:""}
-  ];
-  var curModel=AI_MODELS[0];
-  var modelBtn=document.getElementById("modelBtn");
-  var modelNameEl=document.getElementById("modelName");
-  var modelPicker=null;
-
-  function closeModelPicker(){
-    if(!modelPicker) return;
-    modelPicker.remove(); modelPicker=null;
-    modelBtn.classList.remove("open");
-    document.removeEventListener("mousedown",mpOutside,true);
-    document.removeEventListener("keydown",mpKey);
-  }
-  function mpOutside(e){ if(modelPicker && !modelPicker.contains(e.target) && !modelBtn.contains(e.target)) closeModelPicker(); }
-  function mpKey(e){ if(e.key==="Escape") closeModelPicker(); }
-
-  function openModelPicker(){
-    if(modelPicker){ closeModelPicker(); return; }
-    modelBtn.classList.add("open");
-    var panel=el("div","model-picker");
-
-    // tabs
-    var tabs=el("div","mp-tabs");
-    var tabBuiltin=el("button","mp-tab active","内置");
-    var tabCustom=el("button","mp-tab","自定义");
-    tabBuiltin.addEventListener("click",function(){ tabBuiltin.classList.add("active"); tabCustom.classList.remove("active"); renderModels("builtin"); });
-    tabCustom.addEventListener("click",function(){ tabCustom.classList.add("active"); tabBuiltin.classList.remove("active"); renderModels("custom"); });
-    tabs.appendChild(tabBuiltin);
-    tabs.appendChild(tabCustom);
-    panel.appendChild(tabs);
-
-    var listWrap=el("div","mp-list");
-    panel.appendChild(listWrap);
-
-    function renderModels(tab){
-      listWrap.innerHTML="";
-      if(tab==="custom"){
-        listWrap.innerHTML='<div style="padding:20px 16px;text-align:center;color:var(--subtle);font-size:12px;">'+
-          '<svg style="width:28px;height:28px;margin:0 auto 8px;display:block;stroke:var(--subtle);stroke-width:1.5;fill:none" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>'+
-          '还没有自定义模型<br><span style="color:var(--muted);margin-top:4px;display:inline-block">点击下方「模型配置」添加 API Key</span></div>';
-        return;
-      }
-      listWrap.appendChild(el("div","mp-head","内置模型"));
-      AI_MODELS.forEach(function(m){
-        var item=el("div","mp-item"+(m.id===curModel.id?" selected":""));
-        var iconCls="mp-icon "+(m.tier==="pro"?"pro":m.tier==="adv"?"adv":"std");
-        var iconSvg = m.tier==="pro"
-          ? '<svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.8 5.7 21l2.3-7.2-6-4.4h7.6z"/></svg>'
-          : m.tier==="adv"
-          ? '<svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>'
-          : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>';
-        var badge=m.badge?'<span class="mp-badge">'+m.badge+'</span>':'';
-        item.innerHTML=
-          '<div class="'+iconCls+'">'+iconSvg+'</div>'+
-          '<div class="mp-info"><div class="mp-name">'+m.name+badge+'</div><div class="mp-desc">'+m.desc+'</div></div>'+
-          '<span class="mp-cost">'+m.cost+'</span>';
-        item.addEventListener("click",function(){
-          curModel=m;
-          modelNameEl.textContent=m.name;
-          closeModelPicker();
-          toast("已切换到「"+m.name+"」");
-        });
-        listWrap.appendChild(item);
-      });
+    if(toCheck) parts.push(toCheck+" 个打卡目标（已放进右侧目标打卡）");
+    var totalAdded=toDay+toPool+toCheck;
+    if(totalAdded===0 && toDup>0){
+      toast("这 "+toDup+" 条你已经安排过了，没重复添加～");
+    }else{
+      var msg="（本地模式）拆出 "+totalAdded+" 个事项："+parts.join("、");
+      if(toDup>0) msg+="；另有 "+toDup+" 条重复，已跳过";
+      toast(msg);
     }
-    renderModels("builtin");
-
-    // footer: model settings
-    var sep=el("div","mp-sep");
-    panel.appendChild(sep);
-    var footer=el("div","mp-footer",
-      '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>'+
-      '模型配置');
-    footer.addEventListener("click",function(){ closeModelPicker(); openModelConfig(); });
-    panel.appendChild(footer);
-
-    // position
-    document.body.appendChild(panel);
-    var r=modelBtn.getBoundingClientRect();
-    var left=r.left;
-    var top=r.bottom+8;
-    if(top+panel.offsetHeight>window.innerHeight-10) top=Math.max(10,r.top-panel.offsetHeight-8);
-    if(left+panel.offsetWidth>window.innerWidth-10) left=window.innerWidth-panel.offsetWidth-10;
-    panel.style.left=left+"px"; panel.style.top=top+"px"; panel.style.position="fixed";
-    modelPicker=panel;
-
-    setTimeout(function(){
-      document.addEventListener("mousedown",mpOutside,true);
-      document.addEventListener("keydown",mpKey);
-    },0);
   }
-  modelBtn.addEventListener("click",function(e){ e.stopPropagation(); openModelPicker(); });
 
-  // ---- Model Config Modal ----
-  var cfgState={ enabled:true, key:"", show:false };
-  var cfgOverlay=null;
-  function closeModelConfig(){
-    if(!cfgOverlay) return;
-    cfgOverlay.remove(); cfgOverlay=null;
-    document.removeEventListener("keydown",cfgKey);
-  }
-  function cfgKey(e){ if(e.key==="Escape") closeModelConfig(); }
-  var EYE_ON='<svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
-  var EYE_OFF='<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><path d="M1 1l22 22"/></svg>';
-
-  function openModelConfig(){
-    if(cfgOverlay){ closeModelConfig(); return; }
-    var ov=el("div","cfg-overlay");
-    var modal=el("div","cfg-modal");
-    ov.appendChild(modal);
-
-    // ---- head ----
-    var head=el("div","cfg-head");
-    head.innerHTML=
-      '<div class="cfg-logo"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.8 5.7 21l2.3-7.2-6-4.4h7.6z"/></svg></div>'+
-      '<div class="cfg-htxt">'+
-        '<div class="cfg-title">通义千问 · 阿里云百炼'+
-          '<a class="cfg-doc" href="#" onclick="return false"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>接入教程</a>'+
-        '</div>'+
-        '<div class="cfg-sub">配置服务商 API Key 后即可在「周周搞事情」里调用大模型解析日程</div>'+
-      '</div>';
-    var enable=el("div","cfg-enable"+(cfgState.enabled?"":" off"));
-    enable.innerHTML='<span class="cfg-enable-txt">'+(cfgState.enabled?"已启用":"未启用")+'</span>'+
-      '<div class="cfg-toggle'+(cfgState.enabled?"":" off")+'"></div>';
-    var closeBtn=el("button","cfg-close",'<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>');
-    closeBtn.addEventListener("click",closeModelConfig);
-    head.appendChild(enable);
-    head.appendChild(closeBtn);
-    modal.appendChild(head);
-
-    // ---- body (dims when disabled) ----
-    var body=el("div","cfg-body"+(cfgState.enabled?"":" dim"));
-    modal.appendChild(body);
-
-    // API Key section
-    var keySec=el("div","cfg-sec");
-    keySec.innerHTML=
-      '<div class="cfg-label"><b>API Key</b>'+
-        '<a class="cfg-link" href="https://bailian.console.aliyun.com/cn-beijing/#/api-key" target="_blank" rel="noopener">前往阿里云获取密钥 →</a></div>';
-    var keyRow=el("div","cfg-key");
-    var keyInput=document.createElement("input");
-    keyInput.type=cfgState.show?"text":"password";
-    keyInput.placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx";
-    keyInput.value=cfgState.key;
-    keyInput.addEventListener("input",function(){ cfgState.key=keyInput.value; });
-    var eye=el("button","cfg-eye",cfgState.show?EYE_ON:EYE_OFF);
-    eye.addEventListener("click",function(){
-      cfgState.show=!cfgState.show;
-      keyInput.type=cfgState.show?"text":"password";
-      eye.innerHTML=cfgState.show?EYE_ON:EYE_OFF;
-    });
-    keyRow.appendChild(keyInput);
-    keyRow.appendChild(eye);
-    keySec.appendChild(keyRow);
-    var hint=el("div","cfg-hint");
-    hint.innerHTML='密钥仅保存在本地浏览器，不会上传服务器。<a href="https://bailian.console.aliyun.com/cn-beijing/#/api-key" target="_blank" rel="noopener">如何申请？</a>';
-    hint.style.marginTop="8px";
-    keySec.appendChild(hint);
-    body.appendChild(keySec);
-
-    // model list section
-    var modSec=el("div","cfg-sec");
-    modSec.innerHTML='<div class="cfg-label"><b>可用模型</b><span class="cfg-link" style="color:var(--subtle);cursor:default">共 '+AI_MODELS.length+' 个</span></div>';
-    var models=el("div","cfg-models");
-    function renderCfgModels(){
-      models.innerHTML="";
-      AI_MODELS.forEach(function(m){
-        var isCur=m.id===curModel.id;
-        var mc=el("div","cfg-mc"+(isCur?" active":""));
-        var iconCls="cfg-mc-ic "+(m.tier==="pro"?"pro":m.tier==="adv"?"adv":"std");
-        var iconSvg = m.tier==="pro"
-          ? '<svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.8 5.7 21l2.3-7.2-6-4.4h7.6z"/></svg>'
-          : m.tier==="adv"
-          ? '<svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>'
-          : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>';
-        var rec=m.rec?'<span class="cfg-tag rec">推荐</span>':'';
-        mc.innerHTML=
-          '<div class="'+iconCls+'">'+iconSvg+'</div>'+
-          '<div class="cfg-mc-main"><div class="cfg-mc-name">'+m.name+rec+'</div>'+
-          '<div class="cfg-mc-desc">'+m.desc+' · 计费 '+m.cost+'</div></div>';
-        if(isCur){
-          mc.appendChild(el("span","cfg-cur",'<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>当前使用'));
-        }else{
-          var setBtn=el("button","cfg-set","设为默认");
-          setBtn.addEventListener("click",function(e){
-            e.stopPropagation();
-            curModel=m;
-            modelNameEl.textContent=m.name;
-            renderCfgModels();
-            toast("默认模型已设为「"+m.name+"」");
-          });
-          mc.appendChild(setBtn);
-        }
-        models.appendChild(mc);
-      });
-    }
-    renderCfgModels();
-    modSec.appendChild(models);
-    body.appendChild(modSec);
-
-    // connection test section
-    var test=el("div","cfg-test");
-    var testH=el("div","cfg-test-h");
-    testH.innerHTML='<b>连接测试</b>';
-    var play=el("button","cfg-test-play",'<svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>');
-    testH.appendChild(play);
-    test.appendChild(testH);
-    var runBtn=el("button","cfg-test-run","测试连接");
-    var out=el("div","cfg-test-out");
-    out.style.display="none";
-    function runTest(){
-      if(!cfgState.key.trim()){ toast("请先填写 API Key"); return; }
-      runBtn.disabled=true; runBtn.textContent="连接中…";
-      out.style.display="none";
-      setTimeout(function(){
-        runBtn.disabled=false; runBtn.textContent="测试连接";
-        out.style.display="block";
-        out.innerHTML='<b>✓ 连接成功</b> · 模型「'+curModel.name+'」响应正常，延迟 '+(180+Math.floor(Math.random()*140))+'ms';
-      },1100);
-    }
-    runBtn.addEventListener("click",runTest);
-    play.addEventListener("click",runTest);
-    test.appendChild(runBtn);
-    test.appendChild(out);
-    body.appendChild(test);
-
-    // enable toggle behaviour
-    enable.addEventListener("click",function(){
-      cfgState.enabled=!cfgState.enabled;
-      enable.classList.toggle("off",!cfgState.enabled);
-      enable.querySelector(".cfg-toggle").classList.toggle("off",!cfgState.enabled);
-      enable.querySelector(".cfg-enable-txt").textContent=cfgState.enabled?"已启用":"未启用";
-      body.classList.toggle("dim",!cfgState.enabled);
-    });
-
-    // mount
-    ov.addEventListener("mousedown",function(e){ if(e.target===ov) closeModelConfig(); });
-    document.body.appendChild(ov);
-    cfgOverlay=ov;
-    document.addEventListener("keydown",cfgKey);
-  }
+  // ---- AI 模型说明 ----
+  // 实际调用的模型由后台 api/ai.js 固定为 qwen-max。
+  // 顶部只做只读展示（.ai-model-badge），不再提供“选模型 / 填 Key / 测连接”等
+  // 与真实请求无关的装饰性入口，避免误导。
 
 
   // ---- growth log add ----
@@ -4428,6 +4595,8 @@
   var tabReport=document.getElementById("tabReport");
   var tabMonth=document.getElementById("tabMonth");
   var goReport=document.getElementById("goReport");
+  var rpCoachRedo=document.getElementById("rpCoachRedo");
+  if(rpCoachRedo) rpCoachRedo.addEventListener("click",function(){ renderCoach(weekStats(curMon), true); });
   var weekNavEl=document.querySelector(".week-nav");
 
   function showView(which){
@@ -4671,12 +4840,41 @@
   }
 
   function weekRetro(s){
-    var out=[], tc=topCat(s);
-    if(tc) out.push({c:"var(--q2)",i:ICO_CHECK,t:"这周的重心落在「"+tc.name+"」——投入 "+fmtH(tc.h)+"h，是有效投入里占比最高的一块，主线没散。"});
-    else out.push({c:"var(--q2)",i:ICO_CHECK,t:"这周还没勾选完成的任务，把做过的事拖到对应的日子、打个勾，回顾就会长出来。"});
-    var base=s.effectiveH>0?s.effectiveH:1;
-    if(s.meetH>0) out.push({c:"var(--q1)",i:ICO_WARN,t:"会议占了 "+fmtH(s.meetH)+"h（约有效投入的 "+Math.round(s.meetH/base*100)+"%）。若偏高，下周可主动锁 1–2 个「无会区块」留给深度工作。"});
-    out.push({c:"var(--primary)",i:ICO_UP,t:"深度工作累计 "+fmtH(s.deepH)+"h，来自 Q1/Q2 的重要事项——这类投入最值得保护，稳住节奏就好。"});
+    var c=coachStats(s), tc=topCat(s);
+    var good=[], bad=[];
+    // ---- 做得好 ----
+    if(c.importantDone>0) good.push("完成了 "+c.importantDone+" 件重要的事（重要且紧急 / 重要不紧急），力气花在了刀刃上。");
+    if(tc && s.effectiveH>0) good.push("重心落在「"+tc.name+"」，投入 "+fmtH(tc.h)+"h，主线没散。");
+    if(s.activeDays>=4) good.push("这周有 "+s.activeDays+" 天都在推进，节奏很稳。");
+    if(good.length===0 && c.done>0) good.push("完成了 "+c.done+" 件事，这周是有产出的。");
+    // ---- 待改进 / 没做到位 ----
+    if(c.done===0){
+      bad.push("这周还没勾选完成任何任务——先把做过的事拖到对应的日子、打个勾，回顾就会长出来。");
+    } else {
+      if(!c.hasTime) bad.push("完成的事都没点「加时间」，所以下面的时长和深度工作还显示 0；做完随手记一下花了多久，复盘才看得清时间去向。");
+      if(c.hasTime && c.importantPct>0 && c.importantPct<40) bad.push("只有 "+c.importantPct+"% 的时间花在重要的事上，重心有点偏，下周先啃 1 件「重要不紧急」的事。");
+      if(s.meetH>0 && c.meetPct>=35) bad.push("会议占了有效投入的 "+c.meetPct+"%，深度时间被切碎了，下周可锁 1–2 个「无会区块」。");
+      if(c.q4Done>0) bad.push("有 "+c.q4Done+" 件「不重要不紧急」的琐事，下周能删就删、能合并就合并。");
+      if(bad.length===0) bad.push("暂时没明显短板——下周可以挑 1 件最硬的骨头，把深度工作再往上拔一档。");
+    }
+    // ---- 目标打卡维度（和周日程一起复盘）----
+    var g=c.goals;
+    if(g && g.total>0){
+      if(g.reached>0){
+        var rn=g.items.filter(function(x){ return x.reached; }).map(function(x){ return x.title; }).slice(0,3).join("、");
+        good.push("目标打卡达成 "+g.reached+"/"+g.total+" 项（"+rn+"），说到做到。");
+      }
+      var un=g.items.filter(function(x){ return x.cur<=0; });
+      if(un.length>0){
+        bad.push("有 "+un.length+" 个目标这周一次都没打卡（"+un.map(function(x){ return x.title; }).slice(0,3).join("、")+"），下周先完成 1 次破个零。");
+      }else{
+        var low=g.items.filter(function(x){ return !x.reached; }).sort(function(a,b){ return a.pct-b.pct; })[0];
+        if(low) bad.push("「"+low.title+"」才打到 "+low.pct+"%，离目标还差一截，下周给它排个固定时段推一把。");
+      }
+    }
+    var out=[];
+    good.slice(0,4).forEach(function(t){ out.push({c:"var(--q2)",i:ICO_CHECK,t:'<b>做得好</b> · '+t}); });
+    bad.slice(0,4).forEach(function(t){ out.push({c:"var(--q1)",i:ICO_WARN,t:'<b>待改进</b> · '+t}); });
     return out;
   }
   function renderReportGoals(){
@@ -4694,6 +4892,153 @@
     });
     return shown;
   }
+  // ---- 本周教练点评（AI 复盘 · 一段人话总结）----
+  // 汇总本周「目标打卡」进度（含周期目标：本周 / 本月循环，不含长期一次性目标），供复盘一起点评
+  function collectGoalStats(){
+    syncGoalCur();
+    var list=goals.filter(function(g){ return goalVisible(g) && g.scope!=="once"; });
+    var items=list.map(function(g){
+      return {title:g.title, scope:scopeLabel(g), cur:g.cur, tgt:g.tgt,
+              unit:(g.unit||"次"), pct:goalPct(g), reached:g.cur>=g.tgt};
+    });
+    var reached=items.filter(function(x){ return x.reached; }).length;
+    var untouched=items.filter(function(x){ return x.cur<=0; }).length;
+    var avgPct=items.length ? Math.round(items.reduce(function(a,b){ return a+b.pct; },0)/items.length) : 0;
+    return {items:items, total:items.length, reached:reached, untouched:untouched, avgPct:avgPct};
+  }
+  // 把本周真实数据整理成教练能读懂的摘要
+  function coachStats(s){
+    var qh=[0,0,0,0];   // 按「小时」累计的四象限投入
+    var qc=[0,0,0,0];   // 按「完成件数」累计的四象限（不依赖是否记录了时长）
+    (s.perDay||[]).forEach(function(d){ (d.items||[]).forEach(function(it){
+      if(it.m) return;                       // 会议不算进任务象限
+      if(it.q>=1&&it.q<=4){ qh[it.q-1]+=(it.h||0); qc[it.q-1]++; }
+    }); });
+    var totalH=qh[0]+qh[1]+qh[2]+qh[3];
+    var totalC=qc[0]+qc[1]+qc[2]+qc[3];
+    var tc=topCat(s);
+    var base=s.effectiveH>0?s.effectiveH:1;
+    var hasTime=s.effectiveH>0;              // 这周有没有真正记录过耗时
+    // 有记录耗时就按小时算占比；一件都没记录时长时，退回按「完成件数」算占比，避免全 0
+    var basis = hasTime?qh:qc, totalB = hasTime?totalH:totalC;
+    return {
+      done:s.doneCount, effectiveH:+fmtH(s.effectiveH), deepH:+fmtH(s.deepH),
+      meetH:+fmtH(s.meetH), meetCount:s.meetCount, activeDays:s.activeDays,
+      topCat:tc?tc.name:"", topCatH:tc?+fmtH(tc.h):0,
+      importantPct: totalB>0?Math.round((basis[0]+basis[1])/totalB*100):0,
+      q1Pct: totalB>0?Math.round(basis[0]/totalB*100):0,
+      q4Pct: totalB>0?Math.round(basis[3]/totalB*100):0,
+      meetPct: Math.round(s.meetH/base*100),
+      hasTime: hasTime,
+      importantDone: qc[0]+qc[1],            // 完成的「重要」任务件数（Q1+Q2）
+      q1Done: qc[0], q2Done: qc[1], q4Done: qc[3],
+      goals: collectGoalStats()              // 目标打卡进度，一起纳入复盘
+    };
+  }
+  // 目标打卡的一句话点评，拼接到教练点评末尾
+  function goalRetroLine(g){
+    if(!g || g.total===0) return "";
+    if(g.reached===g.total) return "另外，本周设的 "+g.total+" 个打卡目标全部达成，自律这块拉满了。";
+    if(g.untouched===g.total) return "还有，本周设的 "+g.total+" 个打卡目标一次都没打，别让它们停在计划里——下周先完成 1 次破个零。";
+    if(g.reached>0) return "打卡目标达成了 "+g.reached+"/"+g.total+" 项，剩下的下周再往前挪一格。";
+    return "打卡目标整体推进到约 "+g.avgPct+"%，还差临门一脚，下周挑进度最低的那个先补上。";
+  }
+  // 本地兜底：AI 没连上时，也能凭真实数据给出一段犀利、直给的点评
+  function localCoach(s){
+    var c=coachStats(s);
+    var gl=goalRetroLine(c.goals);
+    if(c.done===0){
+      if(c.goals && c.goals.reached>0){
+        return "这周任务栏你一件都没勾完，不过目标打卡这边有动静——"+gl+"下周把做过的事也拖到对应的日子打个勾，复盘才完整。";
+      }
+      return "这周你一件完成都没勾。工具不会替你做事——先把真正做过的事拖到对应的日子、打上勾，我才有东西能跟你较真。"+(gl?("另外，"+gl):"");
+    }
+    // 完成了任务、但一件都没点「加时间」记录耗时——不能据此说她没做事
+    if(!c.hasTime){
+      if(c.importantDone>0){
+        return "这周你完成了 "+c.done+" 件事，其中 "+c.importantDone+" 件是「重要」的（重要且紧急 / 重要不紧急）——方向没跑偏，该做的硬事你做了。只是你没给任何一件事点「加时间」，所以下面的时长和深度工作都还显示 0。下周做完随手记一下大概花了多久，复盘就能告诉你时间到底去哪了。"+gl;
+      }
+      return "这周你完成了 "+c.done+" 件事，是有产出的；只是都没点「加时间」记录耗时，所以时长统计还是 0。做完随手填个大概时长，我才能帮你看清时间到底花在了哪。"+gl;
+    }
+    var lead, cost, act;
+    if(c.importantPct>0 && c.importantPct<40){
+      lead="这周你只有 "+c.importantPct+"% 的时间花在重要的事上，重心是跑偏的。";
+      cost="剩下大半被临时和琐碎的事吃掉了——看着很忙，真正推动你的事却没动几件。";
+      act="下周开工第一件事，先锁定 1 件「重要不紧急」的事直接做掉，别等它拖成紧急。";
+    } else if(c.q1Pct>=40){
+      lead="这周「重要且紧急」占了 "+c.q1Pct+"%，你基本在救火。";
+      cost="事情不是你安排的，是 deadline 追着你跑——这种节奏撑不了几周，早晚要崩。";
+      act="下周挑 1 件现在还不急的重要事，提前排进日程动手，把火在烧起来之前摁住。";
+    } else if(c.meetH>0 && c.meetPct>=35){
+      lead="会议吃掉了你有效投入的 "+c.meetPct+"%（"+c.meetH+"h），这周你多半在给别人的日程打工。";
+      cost="留给自己深度做事的整块时间被切碎了，难怪一天过去总觉得没干成什么。";
+      act="下周直接在日历里锁 2 个「无会区块」，谁来约都先挡回去。";
+    } else if(c.q4Pct>=30){
+      lead="「不重要不紧急」的琐事占了 "+c.q4Pct+"%，这部分基本是白耗。";
+      cost="它们不会让你变得更好，只是让你显得很忙。";
+      act="下周挑 2 件这类事，要么直接删掉，要么攒到一起用 20 分钟批量清完。";
+    } else {
+      lead="这周其实挺稳——完成 "+c.done+" 件，"+c.importantPct+"% 的时间压在了重要的事上"+(c.topCat?"，主线在「"+c.topCat+"」":"")+"。";
+      cost="问题不在方向，而在还能不能再进一步。";
+      act="下周别只想着保持，挑 1 件最该啃的硬骨头，把深度工作再往上拔一档（现在 "+c.deepH+"h）。";
+    }
+    return lead+cost+act+gl;
+  }
+  var coachCache={key:"",text:""};
+  function coachKey(s){ var g=collectGoalStats(); return ymd(curMon)+"|"+s.doneCount+"|"+Math.round(s.effectiveH*10)+"|"+Math.round(s.meetH*10)+"|g"+g.total+"-"+g.reached+"-"+g.avgPct; }
+  function renderCoach(s, force){
+    var box=document.getElementById("rpCoach");
+    var body=document.getElementById("rpCoachBody");
+    var sub=document.getElementById("rpCoachSub");
+    var redo=document.getElementById("rpCoachRedo");
+    if(!box||!body) return;
+    var key=coachKey(s);
+    var fallback=localCoach(s);
+    // 命中缓存（同一周、数据没变）→ 直接展示，不重复请求
+    if(!force && coachCache.key===key && coachCache.text){
+      box.classList.remove("thinking");
+      body.textContent=coachCache.text;
+      if(sub) sub.textContent=coachCache.src||"来自你的 AI 时间教练";
+      return;
+    }
+    // 没有完成任务、且目标打卡也没动静时，才不打扰后台
+    var gStat=collectGoalStats();
+    var goalActive=gStat.total>0 && (gStat.reached>0 || gStat.avgPct>0);
+    if(s.doneCount===0 && !goalActive){
+      box.classList.remove("thinking");
+      body.textContent=fallback;
+      coachCache={key:key,text:fallback,src:"来自你的 AI 时间教练"};
+      if(sub) sub.textContent="来自你的 AI 时间教练";
+      return;
+    }
+    box.classList.add("thinking");
+    body.textContent="正在为你写点评…";
+    if(sub) sub.textContent="AI 正在思考…";
+    if(redo) redo.disabled=true;
+    var payload=coachStats(s);
+    var finished=false;
+    function settle(text, src){
+      if(finished) return; finished=true;
+      clearTimeout(timer);
+      box.classList.remove("thinking");
+      body.textContent=text;
+      coachCache={key:key,text:text,src:src};
+      if(sub) sub.textContent=src;
+      if(redo) redo.disabled=false;
+    }
+    // 12 秒还没回来就用本地点评兜底，绝不让它一直转
+    var timer=setTimeout(function(){ settle(fallback,"本地生成（AI 未连上）"); },12000);
+    fetch("/api/review",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({stats:payload, week:weekLabel()})})
+      .then(function(r){ return r.ok?r.json():null; })
+      .then(function(d){
+        var txt=d&&d.text?String(d.text).trim():"";
+        if(txt) settle(txt,"来自你的 AI 时间教练");
+        else settle(fallback,"本地生成（AI 未连上）");
+      })
+      .catch(function(){ settle(fallback,"本地生成（AI 未连上）"); });
+  }
+
   function renderReport(){
     var s=weekStats(curMon);
     setTxt("rpTitle", weekLabel()+" · 你的一周");
@@ -4716,6 +5061,7 @@
     renderCategories();
     footOpen=null; renderFootprint();
     var ai=document.getElementById("rpAiList"); if(ai){ ai.innerHTML=""; weekRetro(s).forEach(function(r){ ai.innerHTML+=aiItem(r.c,r.i,r.t); }); }
+    renderCoach(s);
   }
 
   function renderRhythm(ms){
@@ -5185,6 +5531,84 @@
 
   // ---- 钉钉日程同步（已下线：容易重复导入日程，暂时移除入口） ----
   // 按钮与处理逻辑已移除；如后续接入真实 API 再恢复。
+
+  // ---- 网页内提醒：到点前 5 分钟弹系统通知（需网页保持开着或在后台）----
+  var remindTimer=null, remindFired={};
+  function remindBtnState(){
+    var btn=document.getElementById("calSyncBtn"); if(!btn) return;
+    var tx=btn.querySelector(".dt-sync-tx");
+    if(!("Notification" in window)){ btn.classList.remove("done"); if(tx) tx.textContent="不支持提醒"; return; }
+    if(Notification.permission==="granted" && remindTimer){ btn.classList.add("done"); if(tx) tx.textContent="提醒已开"; }
+    else { btn.classList.remove("done"); if(tx) tx.textContent="开启提醒"; }
+  }
+  // 统一弹系统通知；返回是否真的弹出，方便排查系统层面是否被拦
+  function fireNote(title, body, tag){
+    if(!("Notification" in window) || Notification.permission!=="granted") return false;
+    try{
+      var n=new Notification(title,{body:body,tag:tag||title});
+      n.onclick=function(){ try{window.focus();}catch(e){} n.close(); };
+      return true;
+    }catch(e){ return false; }
+  }
+  // 每半分钟扫一遍「本自然周、有具体时间」的任务，到点前 5 分钟内且还没提醒过 → 弹一次
+  function scanReminders(){
+    if(!("Notification" in window) || Notification.permission!=="granted") return;
+    var now=new Date(), mon=mondayOf(now), wk=getWeekTasks(mon);
+    for(var i=0;i<7;i++){
+      var base=addDays(mon,i);
+      (wk[i]||[]).forEach(function(t){
+        if(t.type==="meeting") return;                       // 钉钉日程不重复提醒
+        if(!t.time || !/^\d{1,2}:\d{2}$/.test(t.time)) return;
+        var hm=t.time.split(":");
+        var start=new Date(base.getFullYear(),base.getMonth(),base.getDate(),parseInt(hm[0],10),parseInt(hm[1],10),0,0);
+        var lead=start.getTime()-5*60000;
+        var key=(t.id||t.title)+"@"+ymd(base)+" "+t.time;
+        if(now.getTime()>=lead && now.getTime()<start.getTime() && !remindFired[key]){
+          remindFired[key]=1;
+          fireNote("⏰ 待办提醒",(t.title||"待办")+" · "+t.time+" 就要开始啦（还有不到 5 分钟）",key);
+        }
+      });
+    }
+  }
+  function startReminders(){
+    if(remindTimer) return;
+    scanReminders();
+    remindTimer=setInterval(scanReminders,30000);
+    remindBtnState();
+  }
+  function stopReminders(){
+    if(remindTimer){ clearInterval(remindTimer); remindTimer=null; }
+    remindBtnState();
+  }
+  function toggleReminders(){
+    if(!("Notification" in window)){ toast("这个浏览器不支持网页提醒，建议用电脑版 Chrome / Edge"); return; }
+    if(Notification.permission==="granted"){
+      if(remindTimer){ stopReminders(); toast("已关闭网页提醒"); }
+      else {
+        startReminders();
+        var ok=fireNote("🔔 提醒已开启","以后到点前 5 分钟，就会像这样弹一下提醒你","reminder-test");
+        toast(ok?"已开启，样板通知已弹（就长这样）":"已开启，但系统好像挡住了通知，去电脑「设置 → 通知」里允许浏览器");
+      }
+      return;
+    }
+    if(Notification.permission==="denied"){
+      toast("提醒被浏览器拦住了：点地址栏左边的锁 → 通知 → 允许，再回来点一次");
+      return;
+    }
+    Notification.requestPermission().then(function(p){
+      if(p==="granted"){
+        startReminders();
+        var ok=fireNote("🔔 提醒已开启","以后到点前 5 分钟，就会像这样弹一下提醒你","reminder-test");
+        toast(ok?"已开启，样板通知已弹（就长这样）":"已开启，但系统好像挡住了通知，去电脑「设置 → 通知」里允许浏览器");
+      }
+      else { toast("没授权就没法弹提醒哦，想用随时再点「开启提醒」"); }
+    });
+  }
+  var calSyncBtn=document.getElementById("calSyncBtn");
+  if(calSyncBtn) calSyncBtn.addEventListener("click",toggleReminders);
+  // 页面打开时若之前已授权，自动把提醒续上
+  if(("Notification" in window) && Notification.permission==="granted"){ startReminders(); }
+  remindBtnState();
 
   // ---- pomodoro / focus mode ----
   var PLAY_IC='<svg class="icon" viewBox="0 0 24 24"><path d="M7 5.5v13l11-6.5z"/></svg>';

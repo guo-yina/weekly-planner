@@ -37,7 +37,8 @@ module.exports = async (req, res) => {
   "time": "HH:MM 格式，没有具体时间就填空字符串",
   "q": 四象限 1-4（1=重要且紧急，2=重要不紧急，3=紧急不重要，4=不重要不紧急），
   "cat": 分类 "work"/"study"/"fitness"/"life"/"play" 之一,
-  "desc": "一句话备注：保留用户提到的关键细节（可选）"
+  "desc": "一句话备注：保留用户提到的关键细节（可选）",
+  "checkin": 打卡目标次数（整数）。这是「每周要重复做 N 次的习惯」时才填，比如"这周健身3次"填 3；普通一次性任务不要填这个字段（省略或填 0）。
 }
 
 本周日历：${weekDays || "周一到周日"}${todayLine}
@@ -51,6 +52,14 @@ module.exports = async (req, res) => {
 - 学习/健身/成长类默认=Q2，聚餐/娱乐/购物=play
 - 如果用户只写了一句很短的话（比如"开会"），也要给出合理的完整任务
 
+打卡习惯规则（重要）：
+- 当用户表达"这周/每周要重复做某事 N 次"这类可累计的习惯时，就是打卡任务：设置 "checkin" = N（1-7 的整数），"day" 一律填 -1（打卡卡不排到具体某天），"time" 填空字符串。
+- 典型例子："这周健身3次""每周跑步四次""本周想读书两次""一周打卡5次早起" → checkin 分别填 3、4、2、5。
+- title 要干净，不要带次数和"打卡"字样：例"这周健身三次" → {"title":"健身","checkin":3,"day":-1,"cat":"fitness","q":2}。
+- checkin 的 cat 按内容归类：健身/跑步/运动=fitness，读书/学习=study，早起/喝水/冥想=life。q 默认 2。
+- 只做一次的事（"周三去健身"）不是打卡，不要填 checkin，正常按 day 排。
+
+
 时间提取规则（重要）：
 - 只要用户提到了具体时间点，就必须把它填进 time 字段，用 24 小时制 HH:MM 格式，前面补零。
 - 中文口语要正确换算：早上/上午 = 上午原点；中午12点 → 12:00；下午/晚上/傍晚要 +12（下午3点 → 15:00，晚上8点 → 20:00，晚上8点半 → 20:30）；早上9点 → 09:00；半 = 30 分。
@@ -59,7 +68,22 @@ module.exports = async (req, res) => {
 - 完全没提时间 → time 填空字符串，不要自己编一个。
 - 例："周六下午6点打网球" → {"title":"打网球","day":5,"time":"18:00",...}；"明早9点开周会" → time 填 "09:00"。
 
-只返回 JSON 数组，不要有任何其他文字。`;
+删除指令规则（重要）：
+- 如果用户这句话是要「删除 / 删掉 / 清空 / 移除」已有的日程（而不是新增），不要当成新任务，而是返回一个删除对象：
+  {"action":"delete","delete":{"days":[数字数组，0=周一...6=周日],"allWeek":布尔,"part":"am"或"pm"或空字符串,"keyword":"要删的事项关键词或空字符串"}}
+- days：点名了哪几天就填哪几天（可多个）；"今天/明天/后天"按上面的今天锚点换算成 0-6；没点名具体某天就填空数组 []。
+- allWeek：说"清空这周/本周全部/整周都删"这类整周删除时填 true，否则 false。
+- part：只删上午填 "am"，只删下午/晚上填 "pm"，没区分就填空字符串。
+- keyword：要删某个具体事项时填它的关键词（如"删掉设计评审"→"设计评审"）；按天/整周删就填空字符串。
+- 例："删掉周日的所有日程" → {"action":"delete","delete":{"days":[6],"allWeek":false,"part":"","keyword":""}}
+- 例："清空这周" → {"action":"delete","delete":{"days":[],"allWeek":true,"part":"","keyword":""}}
+- 例："把周三下午的会删了" → {"action":"delete","delete":{"days":[2],"allWeek":false,"part":"pm","keyword":"会"}}
+- 例："删掉设计评审" → {"action":"delete","delete":{"days":[],"allWeek":false,"part":"","keyword":"设计评审"}}
+
+返回格式：
+- 正常整理任务时，返回 {"tasks":[任务对象数组]}（或直接返回任务对象数组）。
+- 是删除指令时，返回上面的 {"action":"delete","delete":{...}} 对象。
+- 只返回 JSON，不要有任何其他文字。`;
 
   try {
     const response = await fetch("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", {
@@ -89,16 +113,24 @@ module.exports = async (req, res) => {
     const content = data.choices?.[0]?.message?.content || "[]";
 
     // 尝试解析 JSON
-    let tasks;
+    let parsed;
     try {
-      const parsed = JSON.parse(content);
-      tasks = Array.isArray(parsed) ? parsed : (parsed.tasks || []);
+      parsed = JSON.parse(content);
     } catch (e) {
-      // 如果不是纯 JSON，尝试提取 JSON 数组
-      const match = content.match(/\[[\s\S]*\]/);
-      tasks = match ? JSON.parse(match[0]) : [];
+      // 如果不是纯 JSON，尝试提取对象或数组
+      const objMatch = content.match(/\{[\s\S]*\}/);
+      const arrMatch = content.match(/\[[\s\S]*\]/);
+      try { parsed = objMatch ? JSON.parse(objMatch[0]) : (arrMatch ? JSON.parse(arrMatch[0]) : []); }
+      catch (_) { parsed = []; }
     }
 
+    // 删除指令：原样透传给前端处理（前端会再弹确认）
+    if (parsed && !Array.isArray(parsed) && parsed.action === "delete") {
+      res.status(200).json({ action: "delete", delete: parsed.delete || {} });
+      return;
+    }
+
+    const tasks = Array.isArray(parsed) ? parsed : (parsed.tasks || []);
     res.status(200).json({ tasks });
   } catch (err) {
     res.status(500).json({ error: "Internal error", detail: err.message });
