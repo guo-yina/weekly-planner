@@ -1308,6 +1308,10 @@
     animation:qpop .14s ease;}
   @keyframes qpop{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:none;}}
   .qmenu-head{font-size:10px;letter-spacing:.04em;color:var(--subtle);padding:5px 9px 4px;text-transform:uppercase;}
+  .qmenu-days{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:2px 6px 5px;}
+  .qmenu-day{font-size:11px;font-weight:500;text-align:center;padding:5px 3px;border-radius:7px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:.12s;white-space:nowrap;}
+  .qmenu-day:hover{border-color:var(--primary-ring);background:var(--primary-soft);color:var(--fg);}
+  .qmenu-day.sel{background:color-mix(in srgb,var(--primary) 16%,transparent);border-color:var(--primary);color:var(--fg);}
   .qmenu-item{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:500;
     padding:7px 10px;border-radius:calc(var(--radius) * .42);cursor:pointer;color:var(--muted);
     transition:background .12s ease,color .12s ease;}
@@ -3360,6 +3364,24 @@
     });
     // divider + this-task actions (edit / delete) live here to keep the card face clean
     m.appendChild(el("div","qmenu-sep"));
+    m.appendChild(el("div","qmenu-head","安排到哪天"));
+    var curLoc=findTask(t.id);
+    var curDay=(curLoc && curLoc.from.kind==="day") ? curLoc.from.i : -1;
+    var dwrap=el("div","qmenu-days");
+    days.forEach(function(d,i){
+      var b=el("div","qmenu-day"+(curDay===i?" sel":""), d.today?"今天":d.wd);
+      b.title="移到 "+d.wd+(d.dt?(" · "+d.dt):"");
+      b.addEventListener("click",function(e){ e.stopPropagation(); closeQMenu(); moveTaskToDay(t,i); });
+      dwrap.appendChild(b);
+    });
+    m.appendChild(dwrap);
+    var poolIt=el("div","qmenu-item"+((curLoc && curLoc.from.kind==="pool")?" sel":""),
+      '<span class="qd" style="background:var(--muted)"></span>收进任务池（未定）'+
+      '<svg class="icon tick" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>');
+    poolIt.addEventListener("click",function(e){ e.stopPropagation(); closeQMenu(); moveTaskToPool(t); });
+    m.appendChild(poolIt);
+    // divider + this-task actions (edit / delete) live here to keep the card face clean
+    m.appendChild(el("div","qmenu-sep"));
     var editIt=el("div","qmenu-item",
       '<svg class="icon act-ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>修改内容');
     editIt.addEventListener("click",function(e){
@@ -3517,6 +3539,25 @@
     pool.push(loc.t);
     render();
     dragId=null;
+    toast("已收回任务池，随时再安排");
+  }
+
+  // 点击方式移动（不依赖拖拽）：从卡片的「▾」菜单里选某一天或收回任务池
+  function moveTaskToDay(t,i){
+    var loc=findTask(t.id); if(!loc) return;
+    if(loc.from.kind==="day" && loc.from.i===i) return;
+    removeFrom(loc);
+    dayTasks[i].push(t);
+    render();
+    toast("已挪到「"+days[i].wd+"」");
+  }
+  function moveTaskToPool(t){
+    var loc=findTask(t.id); if(!loc) return;
+    if(loc.from.kind==="pool") return;
+    removeFrom(loc);
+    t.done=false;
+    pool.push(t);
+    render();
     toast("已收回任务池，随时再安排");
   }
 
