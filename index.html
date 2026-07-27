@@ -1882,6 +1882,44 @@
     .foot-track{grid-template-columns:repeat(4,1fr);}
   }
 
+  /* ---------- Phone (竖屏手机) ---------- */
+  @media(max-width:600px){
+    /* 顶部栏：换行排布，避免挤成一坨 */
+    .topbar{flex-wrap:wrap;gap:8px;padding:10px 14px;}
+    .topbar .spacer{display:none;}
+    .brand{order:1;}
+    .brand-sub{display:none;}
+    .palette{order:2;margin-left:auto;}
+    .avatar{order:3;}
+    .week-nav{order:4;width:100%;margin-left:0;gap:8px;}
+    .week-range{flex:1;min-width:0;}
+    .seg{order:5;width:100%;justify-content:space-between;}
+    .seg button{flex:1;text-align:center;padding-left:0;padding-right:0;}
+    .pomo{order:6;}
+
+    /* 主区：单列，天与天上下堆叠，方便「看今天/本周 + 打勾」 */
+    .layout{grid-template-columns:1fr;}
+    .workspace{padding:14px 12px 28px;}
+    .grid-days{grid-template-columns:1fr;gap:12px;}
+    .day-col{min-height:auto;}
+
+    /* 侧栏整块跟在下面，撑满宽度 */
+    .sidebar{flex-direction:column;}
+    .sidebar>*{min-width:0;}
+
+    /* 任务池卡片撑满，不再固定 232px */
+    .pool-cards{flex-direction:column;overflow-x:visible;}
+    .pool-cards .card{min-width:0;max-width:none;width:100%;}
+
+    /* AI 录入区更紧凑 */
+    .ai-intake{padding:16px;}
+    .ai-actions{flex-wrap:wrap;gap:8px;}
+
+    /* 周报 / 月度回顾 */
+    .rp-stats{grid-template-columns:1fr;}
+    .foot-track{grid-template-columns:repeat(2,1fr);}
+  }
+
   /* ---------- Celebration overlay ---------- */
   #confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;}
 
