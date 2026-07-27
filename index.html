@@ -6,7 +6,7 @@
 <meta name="canvas:aspect-ratio" content="1440:1024" />
 <meta name="canvas:width" content="1440" />
 <meta name="canvas:height" content="1024" />
-<title>周周搞事情 · P人时间管理工作台</title>
+<title>周周搞事情</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -93,8 +93,8 @@
     /* input / well fill — inset feel on dark, soft grey on light (overridden per theme) */
     --well:color-mix(in srgb, var(--black) 22%, transparent);
 
-    /* sidebar wash — subtle darker rail on dark themes, transparent on light for airy feel */
-    --sidebar-bg:color-mix(in srgb, var(--bg) 55%, var(--black) 8%);
+    /* sidebar wash — transparent so it blends seamlessly with the board (no visible divider) */
+    --sidebar-bg:transparent;
 
     --font:"Inter","SF Pro Display",-apple-system,system-ui,"PingFang SC","Microsoft YaHei",sans-serif;
   }
@@ -1037,7 +1037,12 @@
   /* ---------- Layout ---------- */
   .layout{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 344px;gap:0;min-height:0;}
   .workspace{padding:calc(var(--u)*2.4) calc(var(--u)*3);display:flex;flex-direction:column;gap:calc(var(--u)*2.2);min-width:0;overflow:auto;}
-  .sidebar{border-left:1px solid var(--border-soft);background:var(--sidebar-bg);
+  /* 隐藏中间「本周计划」区域自己的滚动条，避免它在日历和侧边栏之间形成一条竖线（滚轮/触控板照常可滚） */
+  .workspace::-webkit-scrollbar{width:0;height:0;}
+  .workspace{scrollbar-width:none;}
+  .sidebar::-webkit-scrollbar{width:0;height:0;}
+  .sidebar{scrollbar-width:none;}
+  .sidebar{background:var(--sidebar-bg);
     padding:calc(var(--u)*2.4) calc(var(--u)*2.4);display:flex;flex-direction:column;gap:calc(var(--u)*2);overflow:auto;}
 
   .sec-head{display:flex;align-items:center;gap:9px;margin-bottom:calc(var(--u)*1.4);}
@@ -1395,6 +1400,44 @@
   .card.play.done .checkbox.heart{background:transparent;border:none;}
   .card.play.done .checkbox.heart svg{fill:var(--play);stroke:var(--play);opacity:1;}
   .card.play.done .card-title{color:var(--muted);}
+
+  /* 云白（light）主题：彩色卡片在纯白底上太扎眼，这里整体调淡，保留区分但更柔和 */
+  :root[data-theme="light"] .card.play{
+    background:
+      radial-gradient(130% 90% at 100% 0%, color-mix(in srgb,var(--play) 9%,transparent), transparent 62%),
+      linear-gradient(180deg, color-mix(in srgb,var(--play) 4%,var(--surface-2)), var(--surface-2));
+    border-color:color-mix(in srgb,var(--play) 22%,var(--border));
+  }
+  :root[data-theme="light"] .card.play::after{opacity:.38;}
+  :root[data-theme="light"] .card.play:hover{
+    border-color:color-mix(in srgb,var(--play) 40%,transparent);
+    box-shadow:0 8px 22px color-mix(in srgb,var(--play) 14%,transparent);
+  }
+  :root[data-theme="light"] .card.play.done{
+    border-color:color-mix(in srgb,var(--play) 26%,var(--border));
+    background:linear-gradient(180deg, color-mix(in srgb,var(--play) 6%,var(--surface-2)), var(--surface-2));
+  }
+  :root[data-theme="light"] .card.done{
+    background:color-mix(in srgb,var(--q2) 4%,var(--surface-2));
+    border-color:color-mix(in srgb,var(--q2) 18%,var(--border));
+  }
+  :root[data-theme="light"] .card.meeting{
+    background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--seed-fg) 3%,transparent) 0 10px,transparent 10px 20px),var(--surface-2);
+  }
+
+  /* 云白主题：让每个模块都带一点点统一的淡渐变，避免只有 AI 框有渐变显得突兀 */
+  :root[data-theme="light"] .panel{
+    background:linear-gradient(180deg, color-mix(in srgb,var(--primary) 4.5%,var(--surface)), var(--surface));
+  }
+  :root[data-theme="light"] .task-pool{
+    background:linear-gradient(180deg, color-mix(in srgb,var(--primary) 4.5%,var(--surface)), color-mix(in srgb,var(--surface) 60%,transparent));
+  }
+  :root[data-theme="light"] .day-col{
+    background:linear-gradient(180deg, color-mix(in srgb,var(--primary) 3.5%,var(--surface)), var(--surface));
+  }
+  :root[data-theme="light"] .day-col.weekend{
+    background:linear-gradient(180deg, color-mix(in srgb,var(--primary) 5%,var(--surface)), color-mix(in srgb,var(--surface) 82%,transparent));
+  }
 
   /* ---------- Task pool ---------- */
   .task-pool{
@@ -3334,6 +3377,15 @@
     window.addEventListener("scroll",closeQMenu,true);
   }
 
+  // 卡片显示排序：有时间的按时间先后排在前面，没时间的按四象限优先级排在后面
+  function taskDisplayOrder(a,b){
+    var at=(a.time||""), bt=(b.time||"");
+    if(at && bt){ if(at!==bt) return at<bt?-1:1; }
+    else if(at && !bt){ return -1; }
+    else if(!at && bt){ return 1; }
+    return (a.q||9)-(b.q||9);
+  }
+
   function render(){
     editingCard=null;
     grid.innerHTML="";
@@ -3355,7 +3407,7 @@
       if(dayTasks[i].length===0){
         body.appendChild(el("div","col-empty","还没记录<br>做完拖到这天"));
       } else {
-        dayTasks[i].forEach(function(t){ body.appendChild(makeCard(t)); });
+        dayTasks[i].slice().sort(taskDisplayOrder).forEach(function(t){ body.appendChild(makeCard(t)); });
       }
       col.appendChild(body);
       // drop targets
@@ -3371,8 +3423,8 @@
     if(pool.length===0){
       poolCards.appendChild(el("div","pool-empty","任务池空了 —— 周一来一次「脑子大倾倒」吧"));
     } else {
-      // 按四象限优先级排序：重要且紧急 → 重要不紧急 → 紧急不重要 → 不重要不紧急
-      pool.slice().sort(function(a,b){ return (a.q||9)-(b.q||9); })
+      // 有时间的按时间先后排序；没时间的按四象限优先级排序
+      pool.slice().sort(taskDisplayOrder)
           .forEach(function(t){ poolCards.appendChild(makeCard(t)); });
     }
     poolCnt.textContent = pool.length+" 件 · 未定日期";
@@ -3972,6 +4024,31 @@
     return ng;
   }
 
+  // 进度型目标：累计做到某个总量（读书页数、学习小时数等），长期有效、达标为止。
+  // 与「每周 N 次」打卡不同，这里带总量 tgt 和当前进度 cur，单位可为 页 / h / 次。
+  function addProgressGoal(title, tgt, cur, unit, cat){
+    var t=Math.max(1, Math.round(tgt||1));
+    var c=Math.max(0, Math.min(t, Math.round(cur||0)));
+    var u=(unit==="页"||unit==="h"||unit==="次") ? unit : "页";
+    var wantTitle=(title||"读书目标");
+    // 已有同名目标 → 更新总量与进度，不重复创建
+    for(var gi=0;gi<goals.length;gi++){
+      var g=goals[gi];
+      if(g && (g.title||"")===wantTitle){
+        g.tgt=t; g.unit=u;
+        if(cat && CATS[cat] && CATS[cat].color) g.gc=CATS[cat].color;
+        setCur(g, c); g.cur=getCur(g);
+        return {goal:g, created:false};
+      }
+    }
+    var gc=(CATS[cat] && CATS[cat].color) || (u==="页" ? "var(--q1)" : "var(--q2)");
+    var ng={id:nid(), title:wantTitle, tgt:t, step:1, unit:u, gc:gc, scope:"once", recurring:false};
+    ng.homeKey=periodOf(ng);
+    goals.push(ng);
+    setCur(ng, c); ng.cur=getCur(ng);
+    return {goal:ng, created:true};
+  }
+
   // ---- AI intake: natural-language parse → week grid (dated) or pool (undated) ----
   var WD_IDX={"一":0,"二":1,"三":2,"四":3,"五":4,"六":5,"日":6,"天":6};
   function todayIdx(){ for(var i=0;i<days.length;i++) if(days[i].today) return i; return 0; }
@@ -4070,6 +4147,48 @@
     if(/学习|读书|看书|背单词|单词|课程|复习|笔记/.test(s)) return "study";
     if(/喝水|早起|睡|冥想|打坐|护肤|吃药/.test(s)) return "life";
     return "fitness";
+  }
+  // 中文数字（含阿拉伯数字）转数值，支持到千位：三百=300、三十=30、两百五十=250
+  function cn2num(s){
+    if(s==null) return NaN;
+    s=(""+s).trim();
+    if(/^\d+$/.test(s)) return parseInt(s,10);
+    var cn={零:0,一:1,二:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9};
+    var um={十:10,百:100,千:1000};
+    var section=0, num=0, matched=false;
+    for(var i=0;i<s.length;i++){
+      var ch=s[i];
+      if(cn[ch]!=null){ num=cn[ch]; matched=true; }
+      else if(um[ch]!=null){ if(num===0) num=1; section+=num*um[ch]; num=0; matched=true; }
+    }
+    var val=section+num;
+    return matched ? val : NaN;
+  }
+  // 本地识别「读书页数」这类进度型目标：一共 X 页、现在读到第 Y 页
+  function parseProgressGoal(f){
+    if(!/页/.test(f)) return null;
+    var N="([0-9]+|[零一二两三四五六七八九十百千]+)";
+    var totM=f.match(new RegExp("(?:一共|总共|共有|共|全书|整本|一本|这本|那本)[^0-9零一二两三四五六七八九十百千]{0,8}"+N+"\\s*页"));
+    if(!totM) totM=f.match(new RegExp(N+"\\s*页(?:的书|的|书)"));
+    if(!totM) return null;
+    var curM=f.match(new RegExp("(?:读到|看到|现在|目前|已读|已经读到|读了|看了)(?:第)?\\s*"+N+"\\s*页"));
+    var tgt=cn2num(totM[1]);
+    if(!tgt || isNaN(tgt)) return null;
+    var cur=curM ? cn2num(curM[1]) : 0;
+    return {tgt:tgt, cur:(isNaN(cur)?0:cur), unit:"页"};
+  }
+  // 读书目标标题：优先书名《...》，其次「XX的书」，否则「读书」
+  function readingGoalTitle(f){
+    var b=f.match(/《([^》]+)》/);
+    if(b) return "读《"+b[1]+"》";
+    var k=f.match(/([A-Za-z0-9\u4e00-\u9fa5]{1,12})的书/);
+    if(k){
+      var name=k[1], prev;
+      do{ prev=name; name=name.replace(/^(我正在看|我在看|正在看|在看|我想看|想看|要看|正在读|我在读|在读|想读|要读|阅读|我|你|他|正|在|看|读|想|要|会|的|一本|这本|那本|某本|一部|一)/,""); }while(name!==prev);
+      name=name.trim();
+      if(name) return "读《"+name+"》";
+    }
+    return "读书";
   }
   var AI_BTN_DEFAULT='<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg> AI 梳理成任务';
   var aiRunEl=document.getElementById("aiRun");
@@ -4366,6 +4485,13 @@
       }
       var newIds=[], toDay=0, toPool=0, toNext=0, toCheck=0, toDup=0;
       tasks.forEach(function(t){
+        // 进度型目标：读书页数 / 学习小时数等「累计到某个总量」的目标 → 进右侧「目标打卡」（长期，达标为止）
+        var gTgt = (typeof t.goalTgt==="number" && t.goalTgt>=1) ? t.goalTgt : 0;
+        if(gTgt>=1){
+          addProgressGoal(t.title||"读书目标", gTgt, (typeof t.goalCur==="number"?t.goalCur:0), t.goalUnit||"页", t.cat||"study");
+          toCheck++;
+          return;
+        }
         // 打卡习惯：AI 返回 checkin>=1 时，直接进右侧「目标打卡」，每周循环、按周归零
         var ck = (typeof t.checkin==="number" && t.checkin>=1) ? Math.min(t.checkin,7) : 0;
         if(ck>=1){
@@ -4435,9 +4561,18 @@
   // 本地降级解析（无网络/AI 不可用时用）
   function fallbackParse(raw){
     var btn=aiRunEl, inp=document.getElementById("aiInput");
-    var frags=raw.split(/[\n,，、；;。]+/).map(function(x){return x.trim();}).filter(function(x){return x.length>1;});
     var newIds=[], toDay=0, toPool=0, toCheck=0, toDup=0;
+    // 先整体识别「读书页数」这类进度目标（总页数和当前页常被逗号拆到不同分句里）
+    var pgHandled=false;
+    var pg=parseProgressGoal(raw);
+    if(pg){
+      addProgressGoal(readingGoalTitle(raw), pg.tgt, pg.cur, pg.unit, "study");
+      toCheck++; pgHandled=true;
+    }
+    var frags=raw.split(/[\n,，、；;。]+/).map(function(x){return x.trim();}).filter(function(x){return x.length>1;});
     frags.forEach(function(f){
+      // 已经把整段识别成读书进度目标 → 跳过与页数/看书相关的分句，避免又生成一条垃圾任务
+      if(pgHandled && (/页/.test(f) || /看书|读书|读的书|一本书|这本书|那本书|读到|看到/.test(f))) return;
       // 先看是不是打卡习惯（每周 N 次）→ 建成右侧「目标打卡」
       var ck=parseCheckin(f);
       if(ck>=1){
