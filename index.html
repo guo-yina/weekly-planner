@@ -73,6 +73,7 @@
 
     --success:var(--seed-success);
     --play:var(--seed-play);
+    --life:#e3ad52; /* 生活 · 暖金（替换原灰色） */
 
     --radius:var(--seed-radius);
     --radius-sm:calc(var(--seed-radius) * 0.6);
@@ -1366,10 +1367,10 @@
   .sp-foot:hover{color:var(--fg);background:color-mix(in srgb,var(--white) 5%,transparent);}
   .sp-foot.clear:hover{color:var(--q1);background:color-mix(in srgb,var(--q1) 10%,transparent);}
 
-  /* completed = achievement, never a penalty */
-  .card.done{background:color-mix(in srgb,var(--q2) 6%,var(--surface));border-color:color-mix(in srgb,var(--q2) 24%,transparent);}
-  .card.done .checkbox{background:var(--q2);border-color:var(--q2);}
-  .card.done .checkbox svg{opacity:1;}
+  /* completed = achievement, never a penalty — 完成态按分类上色 */
+  .card.done{background:color-mix(in srgb,var(--cc,var(--q2)) 7%,var(--surface));border-color:color-mix(in srgb,var(--cc,var(--q2)) 28%,transparent);}
+  .card.done .checkbox{background:var(--cc,var(--q2));border-color:var(--cc,var(--q2));}
+  .card.done .checkbox:not(.shape) svg{opacity:1;fill:none;stroke:var(--white);stroke-width:3.4;width:12px;height:12px;stroke-linecap:round;stroke-linejoin:round;}
   .card.done .card-title{color:var(--muted);}
 
   /* meeting / dingtalk synced — distinct, NOT left-border-accent */
@@ -1394,15 +1395,15 @@
   .card.play:hover{border-color:color-mix(in srgb,var(--play) 58%,transparent);
     box-shadow:0 10px 26px color-mix(in srgb,var(--play) 26%,transparent);}
   .card.play:hover::after{transform:scale(1.25) rotate(12deg);opacity:.9;}
-  .checkbox.heart{border:none;background:transparent;width:18px;height:18px;margin-top:1px;overflow:visible;}
-  .checkbox.heart:hover{border:none;}
-  .checkbox.heart svg{width:18px;height:18px;overflow:visible;stroke:color-mix(in srgb,var(--play) 72%,var(--white));
-    fill:none;stroke-width:1.8;opacity:.9;transition:transform .16s ease,fill .16s ease,opacity .16s ease;}
-  .checkbox.heart:hover svg{transform:scale(1.14);opacity:1;}
+  .checkbox.shape{border:none;background:transparent;width:18px;height:18px;margin-top:1px;overflow:visible;}
+  .checkbox.shape:hover{border:none;background:transparent;}
+  .checkbox.shape svg{width:18px;height:18px;overflow:visible;stroke:color-mix(in srgb,var(--tc) 72%,var(--white));
+    fill:none;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;opacity:.9;transition:transform .16s ease,fill .16s ease,opacity .16s ease;}
+  .checkbox.shape:hover svg{transform:scale(1.14);opacity:1;}
   .card.play.done{border-color:color-mix(in srgb,var(--play) 40%,transparent);
     background:linear-gradient(180deg, color-mix(in srgb,var(--play) 13%,var(--surface-2)), var(--surface-2));}
-  .card.play.done .checkbox.heart{background:transparent;border:none;}
-  .card.play.done .checkbox.heart svg{fill:var(--play);stroke:var(--play);opacity:1;}
+  .card.done .checkbox.shape{background:transparent;border:none;}
+  .card.done .checkbox.shape svg{fill:var(--tc);stroke:var(--tc);opacity:1;}
   .card.play.done .card-title{color:var(--muted);}
 
   /* 云白（light）主题：彩色卡片在纯白底上太扎眼，这里整体调淡，保留区分但更柔和 */
@@ -1937,6 +1938,17 @@
   }
   .card.done-pop{animation:taskPop .38s cubic-bezier(.22,.9,.3,1);}
   .card.done-pop [data-check]{animation:checkPulse .5s ease-out;}
+
+  /* 每个分类「点亮」时各有各的小动作 */
+  .card.done-pop .checkbox.shape{animation:none;}
+  @keyframes tickStar{0%{transform:scale(.5) rotate(-60deg);}55%{transform:scale(1.35) rotate(12deg);}100%{transform:scale(1) rotate(0);}}
+  @keyframes tickBook{0%{transform:scale(.6) rotate(-12deg);}55%{transform:scale(1.22) rotate(6deg);}80%{transform:scale(1.03) rotate(-2deg);}100%{transform:scale(1) rotate(0);}}
+  @keyframes tickThumb{0%{transform:scale(.7) rotate(-14deg);}30%{transform:scale(1.28) rotate(6deg);}55%{transform:scale(1.05) rotate(-3deg);}100%{transform:scale(1) rotate(0);}}
+  @keyframes tickHeart{0%{transform:scale(.6);}22%{transform:scale(1.4);}42%{transform:scale(1.02);}62%{transform:scale(1.3);}100%{transform:scale(1);}}
+  .card.done-pop .checkbox.tick-book svg{animation:tickBook .5s cubic-bezier(.22,.9,.3,1);}
+  .card.done-pop .checkbox.tick-thumb svg{animation:tickThumb .5s cubic-bezier(.22,.9,.3,1);}
+  .card.done-pop .checkbox.tick-star svg{animation:tickStar .5s cubic-bezier(.22,.9,.3,1);}
+  .card.done-pop .checkbox.tick-heart svg{animation:tickHeart .55s cubic-bezier(.22,.9,.3,1);}
 
   /* thumbs-up praise popup on task completion */
   .praise-pop{position:fixed;z-index:10000;transform:translate(-50%,-62%);pointer-events:none;
@@ -2996,8 +3008,18 @@
   }
   // ========== End Celebration Engine ==========
 
-  var CHECK = '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+  var CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.8l4.4 4.4L19.2 7"/></svg>';
   var HEART = '<svg viewBox="-3 -3 30 30"><path d="M12 20.3l-1.45-1.32C5.4 14.36 2 11.28 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.78-3.4 6.86-8.55 11.49L12 20.3z"/></svg>';
+  // 每个分类专属的「打钩」形状：学习=书、健身=大拇指点赞、生活=五角星、玩乐=爱心；工作保留经典方块勾。
+  var STAR = '<svg viewBox="-3 -3 30 30"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>';
+  var BOOK = '<svg viewBox="-3 -3 30 30"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
+  var THUMB = '<svg viewBox="-3 -3 30 30"><path d="M23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/><path d="M1 21h4V9H1z"/></svg>';
+  var CAT_TICK = {
+    study:   {cls:"book",  svg:BOOK},
+    fitness: {cls:"thumb", svg:THUMB},
+    life:    {cls:"star",  svg:STAR},
+    play:    {cls:"heart", svg:HEART}
+  };
   var Q_LABEL = {1:"重要且紧急",2:"重要不紧急",3:"紧急不重要",4:"不重要不紧急"};
 
   // ---- in-memory data ----
@@ -3062,7 +3084,7 @@
 
   // task: {id,title,desc,q,done,type:'task'|'meeting',time,cat}
   // 每一周的任务按「周一日期」存到 weeks 里；切换周时 dayTasks 指向对应周
-  var CATS={work:{label:"工作",color:"var(--primary)"},study:{label:"学习",color:"var(--q3)"},fitness:{label:"健身",color:"var(--q2)"},life:{label:"生活",color:"var(--q4)"},play:{label:"玩乐",color:"var(--play)"}};
+  var CATS={work:{label:"工作",color:"var(--primary)"},study:{label:"学习",color:"var(--q3)"},fitness:{label:"健身",color:"var(--q2)"},life:{label:"生活",color:"var(--life)"},play:{label:"玩乐",color:"var(--play)"}};
   var weeks = {};
   // 成长日志（每条 {text, mood, ts}），随 meta 一起存到云端，重新登录也不丢
   var journal = [];
@@ -3259,9 +3281,13 @@
       qhead='<span class="qtag cat-q" data-qtag="1" style="--cc:'+pc.color+'"><span class="qd"></span>'+pc.label+
           '<svg class="icon caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>';
     }
-    var isPlay=(t.cat==="play");
+    var tick=CAT_TICK[t.cat];
+    var tickColor=(CATS[t.cat]||{color:"var(--play)"}).color;
+    var cbCls=tick?(" shape tick-"+tick.cls):"";
+    var cbStyle=tick?(' style="--tc:'+tickColor+'"'):"";
+    var cbSvg=tick?tick.svg:CHECK;
     return '<div class="card-row">'+
-        '<div class="checkbox'+(isPlay?" heart":"")+'" data-check="1">'+(isPlay?HEART:CHECK)+'</div>'+
+        '<div class="checkbox'+cbCls+'" data-check="1"'+cbStyle+'>'+cbSvg+'</div>'+
         '<div class="card-title">'+t.title+'</div>'+
       '</div>'+
       (t.desc?'<div class="card-desc">'+t.desc+'</div>':'')+
@@ -3275,7 +3301,9 @@
   }
 
   function makeCard(t){
-    var c = el("div","card"+(t.type==="meeting"?" meeting":"")+(t.cat==="play"?" play":"")+(t.done?" done":""));
+    var c = el("div","card"+(t.type==="meeting"?" meeting":"")+(t.cat?" "+t.cat:"")+(t.done?" done":""));
+    var _catColor=(CATS[t.cat]||{}).color;
+    if(_catColor) c.style.setProperty("--cc",_catColor);
     c.setAttribute("data-component","task-card");
     c.dataset.id = t.id;
     c.innerHTML = taskCardHTML(t);
