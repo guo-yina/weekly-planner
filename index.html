@@ -1592,6 +1592,9 @@
   .mood-opt.on{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--fg);}
   .mood-opt .me{font-size:15px;line-height:1;}
   .glog .txt{font-size:12px;color:var(--muted);line-height:1.55;}
+  .glog-del{margin-left:auto;flex:none;width:22px;height:22px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--subtle);display:grid;place-items:center;cursor:pointer;opacity:.5;transition:opacity .15s,color .15s,background .15s,border-color .15s;}
+  .glog-del:hover{opacity:1;color:#ef4444;border-color:color-mix(in srgb,#ef4444 40%,transparent);background:color-mix(in srgb,#ef4444 12%,transparent);}
+  .glog-del .icon{width:14px;height:14px;}
 
   /* weekly review teaser */
   .review{background:linear-gradient(165deg,color-mix(in srgb,var(--primary) 9%,var(--surface)),var(--surface));
@@ -4651,7 +4654,8 @@
     var g=el("div","glog fade-in"); g.style.setProperty("--mc",m.c);
     g.innerHTML='<div class="rail"><span class="node"></span><span class="line"></span></div>'+
       '<div class="body"><div class="meta"><span class="date">今天 · '+todayWd+'</span>'+
-      '<button class="mood" data-mood="'+mi+'" title="'+m.k+' · 点击修改">'+m.e+'</button></div>'+
+      '<button class="mood" data-mood="'+mi+'" title="'+m.k+' · 点击修改">'+m.e+'</button>'+
+      '<button class="glog-del" title="删除这条日志" aria-label="删除这条日志"><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg></button></div>'+
       '<div class="txt">'+v+'</div></div>';
     var list=document.getElementById("glogList");
     list.insertBefore(g,list.firstChild);
@@ -4693,6 +4697,15 @@
     setTimeout(function(){ document.addEventListener("mousedown",moodOutside,true); document.addEventListener("keydown",moodKey); },0);
   }
   document.getElementById("glogList").addEventListener("click",function(e){
+    var del=e.target.closest(".glog-del");
+    if(del){
+      e.stopPropagation();
+      var entry=del.closest(".glog"); if(!entry) return;
+      var parent=entry.parentNode, next=entry.nextSibling;
+      parent.removeChild(entry);
+      toast("已删除这条日志",{label:"撤销",fn:function(){ parent.insertBefore(entry,next); }});
+      return;
+    }
     var chip=e.target.closest(".mood"); if(!chip) return;
     e.stopPropagation(); openMoodPicker(chip);
   });
@@ -5906,8 +5919,13 @@
     if(marioProgressEl) marioProgressEl.textContent=pct+"%";
     // Move Mario: left goes from 2% (pct=0) to 92% (pct=100)
     // Skip during hop — animation handles position
+    // 关键：位置只能往前，绝不后退。跳过障碍后即使进度还没追上，也保持在前方，
+    // 等进度赶上来再继续，这样超级玛丽会一直向前，不会来回抽动。
     if(!marioState.hopping){
       var pos=2+pct*0.9;
+      var curLeft=parseFloat(marioCharEl.style.left);
+      if(isNaN(curLeft)) curLeft=2;
+      if(pos<curLeft) pos=curLeft;
       marioCharEl.style.left=pos+"%";
     }
 
