@@ -2755,6 +2755,24 @@
       }
     }
 
+    // ---- 修复历史遗留的「撞号」数据 ----
+    // 早期 nid() 计数器每次刷新都从 0 重新发号，导致新建任务可能和云端旧任务用同一个 id，
+    // 于是出现「删一张卡，另一张同号卡消失」的现象。这里在数据落地后做一次自愈：
+    (function repairTaskIds(){
+      // 1、让计数器越过所有已存在的数字 id，之后新建的任务不会再撞号
+      function bump(id){
+        if(typeof id==="string"){ var m=/^t(\d+)$/.exec(id); if(m){ var n=parseInt(m[1],10); if(n>uid) uid=n; } }
+      }
+      Object.keys(weeks).forEach(function(k){ var w=weeks[k]; if(!w) return; for(var d=0;d<w.length;d++){ (w[d]||[]).forEach(function(t){ if(t) bump(t.id); }); } });
+      pool.forEach(function(t){ if(t) bump(t.id); });
+      goals.forEach(function(g){ if(g) bump(g.id); });
+      // 2、扫描所有任务，给缺失或重复的 id 重新发号（只处理任务，不动目标 id）
+      var seen={};
+      function fix(t){ if(!t) return; if(!t.id || seen[t.id]){ t.id=nid(); } seen[t.id]=true; }
+      Object.keys(weeks).forEach(function(k){ var w=weeks[k]; if(!w) return; for(var d=0;d<w.length;d++){ (w[d]||[]).forEach(fix); } });
+      pool.forEach(fix);
+    })();
+
     // Re-derive current week data and re-render
     dayTasks = getWeekTasks(curMon);
     syncGoalCur();
@@ -3336,7 +3354,7 @@
 
   // ---- delete a task (with undo) ----
   function delTask(t){
-    var f=findTask(t.id); if(!f) return;
+    var f=findTask(t); if(!f) return;
     var arr = f.from.kind==="pool" ? pool : dayTasks[f.from.i];
     var idx = arr.indexOf(f.t); if(idx<0) idx=f.idx;
     arr.splice(idx,1);
@@ -3431,7 +3449,7 @@
     // divider + this-task actions (edit / delete) live here to keep the card face clean
     m.appendChild(el("div","qmenu-sep"));
     m.appendChild(el("div","qmenu-head","安排到哪天"));
-    var curLoc=findTask(t.id);
+    var curLoc=findTask(t);
     var curDay=(curLoc && curLoc.from.kind==="day") ? curLoc.from.i : -1;
     var dwrap=el("div","qmenu-days");
     days.forEach(function(d,i){
@@ -3569,9 +3587,11 @@
 
   // ---- drag state ----
   var dragId=null, dragFrom=null; // from: {kind:'pool'} or {kind:'day',i}
-  function findTask(id){
-    for(var i=0;i<pool.length;i++) if(pool[i].id===id) return {t:pool[i],from:{kind:"pool"},idx:i};
-    for(var d=0;d<dayTasks.length;d++) for(var j=0;j<dayTasks[d].length;j++) if(dayTasks[d][j].id===id) return {t:dayTasks[d][j],from:{kind:"day",i:d},idx:j};
+  // ref 可以是任务对象（按引用精确定位，能正确区分「撞号」的两张卡），也可以是 id 字符串（拖拽时用）
+  function findTask(ref){
+    var byObj = ref && typeof ref === "object";
+    for(var i=0;i<pool.length;i++) if(byObj ? pool[i]===ref : pool[i].id===ref) return {t:pool[i],from:{kind:"pool"},idx:i};
+    for(var d=0;d<dayTasks.length;d++) for(var j=0;j<dayTasks[d].length;j++) if(byObj ? dayTasks[d][j]===ref : dayTasks[d][j].id===ref) return {t:dayTasks[d][j],from:{kind:"day",i:d},idx:j};
     return null;
   }
   function onDragStart(e){
@@ -3614,7 +3634,7 @@
 
   // 点击方式移动（不依赖拖拽）：从卡片的「▾」菜单里选某一天或收回任务池
   function moveTaskToDay(t,i){
-    var loc=findTask(t.id); if(!loc) return;
+    var loc=findTask(t); if(!loc) return;
     if(loc.from.kind==="day" && loc.from.i===i) return;
     removeFrom(loc);
     dayTasks[i].push(t);
@@ -3622,7 +3642,7 @@
     toast("已挪到「"+days[i].wd+"」");
   }
   function moveTaskToPool(t){
-    var loc=findTask(t.id); if(!loc) return;
+    var loc=findTask(t); if(!loc) return;
     if(loc.from.kind==="pool") return;
     removeFrom(loc);
     t.done=false;
