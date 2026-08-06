@@ -3232,20 +3232,22 @@
   // 当前周（2026-07-20 起）：周一~周三已过、多为已完成；周四起进行中。
   // 会议带 dur（小时）用于统计「会议占用」；任务 done + spent 参与「有效投入 / 深度工作」统计。
   weeks[ymd(curMon)] = [
-    [ {id:nid(),type:"meeting",title:"双周迭代评审会",time:"10:00",dur:1.0,desc:"研发 + 产品，同步上双周进展",cat:"work"},
-      {id:nid(),type:"task",title:"梳理本周任务",q:2,done:true,spent:0.5,desc:"用 AI 把脑子里的事倒出来分类",cat:"work"} ],
-    [ {id:nid(),type:"task",title:"写 Q3 OKR 初稿",q:2,done:true,spent:2.5,desc:"聚焦 2 个关键结果，先出草稿",cat:"work"},
-      {id:nid(),type:"task",title:"整理竞品调研笔记",q:2,done:true,spent:1.0,desc:"沉淀成可复用的一页纸",cat:"work"} ],
-    [ {id:nid(),type:"meeting",title:"产品需求澄清会",time:"14:00",dur:1.0,desc:"与业务方对齐边界与验收标准",cat:"work"},
-      {id:nid(),type:"task",title:"输出需求文档 v1",q:1,done:true,spent:4.0,desc:"澄清会后当天补齐，趁热打铁",cat:"work"} ],
-    [ {id:nid(),type:"task",title:"客户回访电话",q:3,done:true,spent:0.5,desc:"例行沟通，20 分钟内搞定",cat:"work"},
-      {id:nid(),type:"task",title:"读《深度工作》两章",q:2,done:true,spent:2.0,desc:"关联本月学习目标",cat:"study"} ],
-    [ {id:nid(),type:"meeting",title:"周会 + 团队复盘",time:"17:00",dur:1.0,desc:"回顾本周节奏，聊下周安排",cat:"work"},
-      {id:nid(),type:"task",title:"跟设计对齐视觉方案",q:2,done:true,spent:1.0,desc:"评审会后约 30 分钟走查稿子",cat:"work"} ],
-    [ {id:nid(),type:"task",title:"力量训练",q:2,done:true,spent:1.5,desc:"关联「本周健身 3 次」目标",goal:"fit",cat:"fitness"},
-      {id:nid(),type:"task",title:"看「时间的形状」当代艺术展",done:false,desc:"约朋友一起去，慢慢逛",cat:"play"},
-      {id:nid(),type:"task",title:"打卡新开的日料店",done:false,desc:"晚上定了位子",cat:"play",time:"19:00"} ],
-    [ {id:nid(),type:"task",title:"看脱口秀专场",done:false,desc:"笑一笑，攒点年度回顾素材",cat:"play",time:"20:00"} ]
+    [ {id:nid(),type:"task",title:"晨跑 5 公里",q:2,done:true,spent:0.75,desc:"沿河边跑，配速 6'30\"",goal:"fit",cat:"fitness"},
+      {id:nid(),type:"task",title:"读《小王子》30 页",q:2,done:true,spent:0.5,desc:"重温小时候读过的故事",cat:"study"} ],
+    [ {id:nid(),type:"task",title:"瑜伽课",time:"19:00",dur:1.0,desc:"拉伸 + 冥想，缓解久坐",goal:"fit",cat:"fitness"},
+      {id:nid(),type:"task",title:"学做提拉米苏",q:3,done:true,spent:1.5,desc:"第一次做，居然没翻车",cat:"life"} ],
+    [ {id:nid(),type:"task",title:"游泳 800 米",q:2,done:true,spent:1.0,desc:"自由泳 + 蛙泳交替",goal:"fit",cat:"fitness"},
+      {id:nid(),type:"task",title:"整理书架",q:3,done:true,spent:1.0,desc:"按颜色排列，强迫症福音",cat:"life"} ],
+    [ {id:nid(),type:"task",title:"力量训练",q:1,done:false,desc:"今天练背 + 二头，上次深蹲腿还在酸",goal:"fit",cat:"fitness"},
+      {id:nid(),type:"task",title:"逛宜家",done:false,desc:"看看有没有好看的落地灯",cat:"life"},
+      {id:nid(),type:"task",title:"看纪录片《地球脉动》",done:false,desc:"配零食，周末氛围拉满",cat:"play",time:"21:00"} ],
+    [ {id:nid(),type:"task",title:"周末计划",q:2,done:false,desc:"想好周六去哪玩",cat:"life"},
+      {id:nid(),type:"task",title:"约朋友吃火锅",done:false,desc:"那家新开的重庆火锅",cat:"play",time:"18:30"},
+      {id:nid(),type:"task",title:"学吉他 C 和弦",q:3,done:false,desc:"手指快磨出茧了",cat:"study"} ],
+    [ {id:nid(),type:"task",title:"爬山",q:2,done:false,desc:"西山步道，往返约 3 小时",goal:"fit",cat:"fitness"},
+      {id:nid(),type:"task",title:"看当代艺术展",done:false,desc:"798 那个新展，朋友推荐",cat:"play",time:"14:00"} ],
+    [ {id:nid(),type:"task",title:"睡到自然醒",done:false,desc:"本周唯一 KPI",cat:"life"},
+      {id:nid(),type:"task",title:"看一部老电影",done:false,desc:"《肖申克的救赎》，第 N 刷",cat:"play",time:"20:00"} ]
   ];
   // 钉钉日历（暂未开放，后续接入真实 API）
   var DT_SYNC = {};
@@ -3258,11 +3260,11 @@
   var dayTasks = getWeekTasks(curMon);
 
   var pool = [
-    {id:nid(),type:"task",title:"跟设计对齐视觉方案",q:2,done:false,desc:"评审会后约 30 分钟走查稿子",cat:"work"},
-    {id:nid(),type:"task",title:"回复合作方邮件",q:3,done:false,desc:"确认下阶段对接人与排期",cat:"work"},
-    {id:nid(),type:"task",title:"整理竞品调研笔记",q:2,done:false,desc:"沉淀成可复用的一页纸",cat:"work"},
-    {id:nid(),type:"task",title:"报销上月发票",q:4,done:false,desc:"贴票 + 提交系统，杂事清掉",cat:"life"},
-    {id:nid(),type:"task",title:"读《深度工作》两章",q:2,done:false,desc:"关联本月学习目标",cat:"study"}
+    {id:nid(),type:"task",title:"学做手冲咖啡",q:2,done:false,desc:"买了新豆子，试试不同水温",cat:"life"},
+    {id:nid(),type:"task",title:"读完《人类简史》",q:2,done:false,desc:"还剩最后三章",cat:"study"},
+    {id:nid(),type:"task",title:"买新跑鞋",q:3,done:false,desc:"旧那双底磨平了",cat:"life"},
+    {id:nid(),type:"task",title:"给猫买新玩具",q:4,done:false,desc:"它最近对逗猫棒腻了",cat:"life"},
+    {id:nid(),type:"task",title:"看 TED 演讲：如何养成好习惯",q:2,done:false,desc:"18 分钟，通勤路上看",cat:"study"}
   ];
 
   // ========== 数据派生层：以 weeks（看板）为唯一真源，周报 / 月报都从这里算 ==========
@@ -3918,10 +3920,10 @@
   //             非循环目标只在它所属的那个周期出现（homeKey）
   //   进度按「周期」存放在 goalProgress 里，切周/切月自动归零，目标本身始终列在这里
   var goals = [
-    {id:"fit",   title:"健身",       tgt:3,  step:1, unit:"次", gc:"var(--q2)",      chip:"健身",     scope:"week",  recurring:true},
-    {id:"deep",  title:"深度工作",    tgt:15, step:1, unit:"h",  gc:"var(--primary)", chip:"深度工作", scope:"week",  recurring:true},
-    {id:"study", title:"学习",       tgt:20, step:1, unit:"h",  gc:"var(--q3)",                       scope:"month", recurring:true},
-    {id:"read",  title:"读《持续买入》", tgt:267, step:1, unit:"页", gc:"var(--q1)",     chip:"阅读",     scope:"once",  recurring:false}
+    {id:"fit",   title:"本周健身 3 次",    tgt:3,  step:1, unit:"次", gc:"var(--q2)",      chip:"健身",     scope:"week",  recurring:true},
+    {id:"read",  title:"读《小王子》",      tgt:120, step:1, unit:"页", gc:"var(--q3)",     chip:"阅读",     scope:"once",  recurring:false},
+    {id:"cook",  title:"学做一道新菜",     tgt:1,  step:1, unit:"道", gc:"var(--life)",    chip:"烹饪",     scope:"week",  recurring:true},
+    {id:"study", title:"本月学习 20 小时", tgt:20, step:1, unit:"h",  gc:"var(--q1)",                       scope:"month", recurring:true}
   ];
   // 各周期进度：键为 "scope:周期:目标id"
   var goalProgress = {};
