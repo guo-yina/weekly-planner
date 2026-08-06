@@ -998,6 +998,17 @@
   .chip-goal .gt b{font-size:12px;font-weight:500;color:var(--fg);}
   .chip-goal .gt small{font-size:10.5px;color:var(--subtle);}
 
+  /* ---------- Topbar login/logout button ---------- */
+  #topbarAuthBtn{
+    display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;
+    border-radius:var(--radius-pill);border:1px solid var(--border);background:var(--surface-2);
+    color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;flex:none;
+    transition:border-color .18s ease,color .18s ease,background .18s ease;
+  }
+  #topbarAuthBtn:hover{color:var(--fg);border-color:var(--border-strong);background:var(--surface-3);}
+  #topbarAuthBtn.logged-in{background:transparent;border-color:transparent;color:var(--muted);padding:0 10px;}
+  #topbarAuthBtn.logged-in:hover{color:var(--fg);background:var(--surface-2);}
+
   .avatar{width:32px;height:32px;border-radius:50%;flex:none;
     background:linear-gradient(140deg,var(--c-av1),var(--c-av2));color:var(--white);
     display:grid;place-items:center;font-size:12px;font-weight:600;border:1px solid var(--border);}
@@ -2043,14 +2054,61 @@
   .auth-card .auth-msg{
     font-size:12px;color:var(--success,#3fcf8e);margin-top:10px;min-height:16px;
   }
+
+  /* ---------- 访客体验横幅：先玩演示版，想正式用再注册 ---------- */
+  #demoBar{
+    position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:9000;
+    display:flex;align-items:center;gap:10px;
+    max-width:calc(100vw - 24px);
+    padding:9px 12px 9px 14px;border-radius:999px;
+    background:color-mix(in srgb,var(--surface,#17181b) 92%,transparent);
+    border:1px solid var(--border,rgba(247,248,248,.08));
+    box-shadow:0 10px 30px rgba(0,0,0,.45);
+    backdrop-filter:blur(10px);
+    font-size:13px;color:var(--muted,rgba(247,248,248,.62));
+    transition:opacity .3s ease,transform .3s ease;
+  }
+  #demoBar.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-10px);}
+  #demoBar .db-dot{
+    width:8px;height:8px;border-radius:50%;flex:none;
+    background:var(--success,#3fcf8e);animation:dbPulse 1.8s ease infinite;
+  }
+  @keyframes dbPulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  #demoBar .db-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #demoBar .db-btn{
+    flex:none;border:none;border-radius:999px;padding:7px 14px;
+    font-size:13px;font-weight:500;cursor:pointer;
+    background:var(--primary,#7170ff);color:#fff;transition:opacity .2s;
+  }
+  #demoBar .db-btn:hover{opacity:.88;}
+  #demoBar .db-x{
+    flex:none;border:none;background:none;color:var(--subtle,rgba(247,248,248,.42));
+    cursor:pointer;font-size:13px;padding:4px;line-height:1;
+  }
+  #demoBar .db-x:hover{color:var(--fg,#f7f8f8);}
+  /* 横幅被收起后，留在左下角的小入口 */
+  #demoCta{
+    position:fixed;left:18px;bottom:18px;z-index:9000;
+    border:1px solid var(--border,rgba(247,248,248,.08));border-radius:999px;padding:9px 16px;
+    background:color-mix(in srgb,var(--surface,#17181b) 92%,transparent);
+    color:var(--fg,#f7f8f8);font-size:13px;cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);backdrop-filter:blur(10px);
+    transition:border-color .2s;
+  }
+  #demoCta:hover{border-color:var(--primary,#7170ff);}
+  #demoCta.hidden{display:none;}
+  @media(max-width:680px){
+    #demoBar{top:70px;padding:8px 10px;gap:8px;}
+    #demoBar .db-text{max-width:44vw;}
+  }
 </style>
 </head>
 <body>
-<!-- Auth overlay -->
-<div id="authOverlay">
+<!-- Auth overlay（默认隐藏：访客直接进演示版，点「注册/登录」才显示） -->
+<div id="authOverlay" class="hidden" style="display:none">
   <div class="auth-card">
     <h1>周周搞事情</h1>
-    <div class="sub">P人时间管理工作台 · 登录后数据自动云同步</div>
+    <div class="sub">注册后拥有你自己的计划板 · 数据自动云同步</div>
     <input id="authEmail" type="email" placeholder="邮箱" autocomplete="email" />
     <input id="authPwd" type="password" placeholder="密码（至少6位）" autocomplete="current-password" />
     <button class="btn-auth" id="authBtn">登录</button>
@@ -2059,6 +2117,15 @@
     <div class="auth-msg" id="authMsg"></div>
   </div>
 </div>
+
+<!-- 访客体验横幅：进来先玩演示版，想正式用再注册（初始隐藏，未登录时显示） -->
+<div id="demoBar" class="hidden">
+  <span class="db-dot"></span>
+  <span class="db-text">正在体验演示版 · 日程和目标都是示例，不会保存</span>
+  <button class="db-btn" id="demoAuthBtn" type="button">注册开始使用</button>
+  <button class="db-x" id="demoBarClose" type="button" aria-label="收起提示">✕</button>
+</div>
+<button id="demoCta" class="hidden" type="button">注册 / 登录</button>
 
 <div class="app">
 
@@ -2234,6 +2301,8 @@
         </div>
       </div>
     </div>
+
+    <button class="topbar-auth-btn" id="topbarAuthBtn" type="button">登录</button>
 
     <div class="spacer"></div>
 
@@ -2649,6 +2718,45 @@
   authBtn.addEventListener("click", doAuth);
   authPwd.addEventListener("keydown", function(e){ if(e.key==="Enter") doAuth(); });
 
+  // ---- 访客体验模式：未登录先看演示版，想正式用再注册 ----
+  var demoBar = document.getElementById("demoBar");
+  var demoCta = document.getElementById("demoCta");
+  var topbarAuthBtn = document.getElementById("topbarAuthBtn");
+  var justSignedUp = false;
+  function updateTopbarAuthBtn(){
+    if(currentUser){
+      topbarAuthBtn.textContent = "退出登录";
+      topbarAuthBtn.classList.add("logged-in");
+    } else {
+      topbarAuthBtn.textContent = "登录";
+      topbarAuthBtn.classList.remove("logged-in");
+    }
+  }
+  topbarAuthBtn.addEventListener("click", function(){
+    if(currentUser){
+      // 退出登录：清空本地状态，回到访客演示版
+      currentUser = null;
+      demoBar.classList.remove("hidden");
+      updateTopbarAuthBtn();
+      toast("已退出登录，当前为演示版");
+    } else {
+      showAuthOverlay();
+    }
+  });
+  function showAuthOverlay(){
+    demoBar.classList.add("hidden");
+    demoCta.classList.add("hidden");
+    authOverlay.style.display="";
+    authOverlay.classList.remove("hidden");
+    authEmail.focus();
+  }
+  document.getElementById("demoAuthBtn").addEventListener("click", showAuthOverlay);
+  demoCta.addEventListener("click", showAuthOverlay);
+  document.getElementById("demoBarClose").addEventListener("click", function(){
+    demoBar.classList.add("hidden");
+    demoCta.classList.remove("hidden");
+  });
+
   async function doAuth(){
     var email = authEmail.value.trim();
     var pwd = authPwd.value;
@@ -2680,13 +2788,18 @@
       return;
     }
     currentUser = res.data.user;
+    if(isSignUp) justSignedUp = true;
     onAuthSuccess();
   }
 
   function onAuthSuccess(){
     authOverlay.classList.add("hidden");
     setTimeout(function(){ authOverlay.style.display="none"; }, 500);
+    demoBar.classList.add("hidden");
+    demoCta.classList.add("hidden");
     loadCloudData();
+    updateTopbarAuthBtn();
+    if(justSignedUp) toast("欢迎！这块计划板现在是你的了，开始安排你的一周吧");
     // request browser notification permission for task reminders
     if(typeof requestNotifyPermission==="function") requestNotifyPermission();
   }
@@ -2697,23 +2810,33 @@
     if(data && data.session){
       currentUser = data.session.user;
       onAuthSuccess();
+    } else {
+      // 访客：不弹登录墙，直接进演示版（内置示例日程/目标），顶部横幅引导注册
+      authOverlay.classList.add("hidden");
+      authOverlay.style.display="none";
+      demoBar.classList.remove("hidden");
+      updateTopbarAuthBtn();
     }
   })();
 
   // ---- Cloud data load ----
   async function loadCloudData(){
     if(!currentUser) return;
+    // 先清空本地演示数据（访客体验用的示例日程/目标/日志），
+    // 保证登录后看到的永远是「云端数据」：新用户得到干净空白板，
+    // 老用户也不会因为本周没有云端记录而残留示例卡片
+    Object.keys(weeks).forEach(function(k){ delete weeks[k]; });
+    pool.length = 0;
+    goals.length = 0;
+    journal.length = 0;
+    Object.keys(goalProgress).forEach(function(k){ delete goalProgress[k]; });
+
     // Load all weekly_data rows for this user
     var { data: rows } = await sb.from("weekly_data")
       .select("week_start, tasks, goals, theme")
       .eq("user_id", currentUser.id);
     if(!rows || rows.length === 0){
-      // 新用户：清空所有演示数据，从空白开始
-      Object.keys(weeks).forEach(function(k){ delete weeks[k]; });
-      pool.length = 0;
-      goals.length = 0;
-      journal.length = 0;
-      Object.keys(goalProgress).forEach(function(k){ delete goalProgress[k]; });
+      // 新用户：云端没有数据，从空白开始
       dayTasks = getWeekTasks(curMon);
       syncGoalCur();
       render();
