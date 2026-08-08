@@ -3246,6 +3246,10 @@
   var weeks = {};
   // 成长日志（每条 {text, mood, ts}），随 meta 一起存到云端，重新登录也不丢
   var journal = [];
+  // 任务池 / 目标 / 目标进度：声明在这里，loadDemoData() 负责填入演示种子数据
+  var pool = [];
+  var goals = [];
+  var goalProgress = {};
 
   // 演示版种子数据：退出登录后回到访客模式时重新加载
   function loadDemoData(){
