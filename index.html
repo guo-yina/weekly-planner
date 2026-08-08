@@ -1000,14 +1000,15 @@
 
   /* ---------- Topbar login/logout button ---------- */
   #topbarAuthBtn{
-    display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;
-    border-radius:var(--radius-pill);border:1px solid var(--border);background:var(--surface-2);
-    color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;flex:none;
-    transition:border-color .18s ease,color .18s ease,background .18s ease;
+    display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 20px;
+    border-radius:var(--radius-pill);border:1px solid transparent;background:var(--primary);
+    color:var(--white,#fff);font-size:13.5px;font-weight:600;cursor:pointer;flex:none;
+    box-shadow:0 4px 16px color-mix(in srgb,var(--primary) 40%,transparent);
+    transition:opacity .18s ease,background .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease;
   }
-  #topbarAuthBtn:hover{color:var(--fg);border-color:var(--border-strong);background:var(--surface-3);}
-  #topbarAuthBtn.logged-in{background:transparent;border-color:transparent;color:var(--muted);padding:0 10px;}
-  #topbarAuthBtn.logged-in:hover{color:var(--fg);background:var(--surface-2);}
+  #topbarAuthBtn:hover{opacity:.88;}
+  #topbarAuthBtn.logged-in{background:transparent;border-color:transparent;color:var(--muted);padding:0 10px;height:32px;box-shadow:none;font-weight:500;}
+  #topbarAuthBtn.logged-in:hover{color:var(--fg);background:var(--surface-2);opacity:1;}
 
   .avatar{width:32px;height:32px;border-radius:50%;flex:none;
     background:linear-gradient(140deg,var(--c-av1),var(--c-av2));color:var(--white);
@@ -2057,48 +2058,49 @@
 
   /* ---------- 访客体验横幅：先玩演示版，想正式用再注册 ---------- */
   #demoBar{
-    position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:9000;
-    display:flex;align-items:center;gap:10px;
+    position:fixed;top:76px;right:18px;z-index:9000;
+    display:flex;align-items:center;gap:12px;
     max-width:calc(100vw - 24px);
-    padding:9px 12px 9px 14px;border-radius:999px;
-    background:color-mix(in srgb,var(--surface,#17181b) 92%,transparent);
-    border:1px solid var(--border,rgba(247,248,248,.08));
-    box-shadow:0 10px 30px rgba(0,0,0,.45);
-    backdrop-filter:blur(10px);
-    font-size:13px;color:var(--muted,rgba(247,248,248,.62));
+    padding:12px 14px 12px 18px;border-radius:999px;
+    background:color-mix(in srgb,var(--surface,#17181b) 88%,transparent);
+    border:1px solid color-mix(in srgb,var(--primary,#7170ff) 45%,transparent);
+    box-shadow:0 12px 36px rgba(0,0,0,.5),0 0 24px color-mix(in srgb,var(--primary,#7170ff) 22%,transparent);
+    backdrop-filter:blur(12px);
+    font-size:14px;color:var(--fg,#f7f8f8);
     transition:opacity .3s ease,transform .3s ease;
   }
-  #demoBar.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-10px);}
+  #demoBar.hidden{opacity:0;pointer-events:none;transform:translateY(-10px);}
   #demoBar .db-dot{
-    width:8px;height:8px;border-radius:50%;flex:none;
+    width:10px;height:10px;border-radius:50%;flex:none;
     background:var(--success,#3fcf8e);animation:dbPulse 1.8s ease infinite;
   }
   @keyframes dbPulse{0%,100%{opacity:1;}50%{opacity:.35;}}
   #demoBar .db-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   #demoBar .db-btn{
-    flex:none;border:none;border-radius:999px;padding:7px 14px;
-    font-size:13px;font-weight:500;cursor:pointer;
+    flex:none;border:none;border-radius:999px;padding:10px 20px;
+    font-size:14px;font-weight:600;cursor:pointer;
     background:var(--primary,#7170ff);color:#fff;transition:opacity .2s;
+    box-shadow:0 4px 14px color-mix(in srgb,var(--primary,#7170ff) 35%,transparent);
   }
   #demoBar .db-btn:hover{opacity:.88;}
   #demoBar .db-x{
     flex:none;border:none;background:none;color:var(--subtle,rgba(247,248,248,.42));
-    cursor:pointer;font-size:13px;padding:4px;line-height:1;
+    cursor:pointer;font-size:15px;padding:4px;line-height:1;
   }
   #demoBar .db-x:hover{color:var(--fg,#f7f8f8);}
-  /* 横幅被收起后，留在左下角的小入口 */
+  /* 横幅被收起后，留在右上角的小入口 */
   #demoCta{
-    position:fixed;left:18px;bottom:18px;z-index:9000;
-    border:1px solid var(--border,rgba(247,248,248,.08));border-radius:999px;padding:9px 16px;
-    background:color-mix(in srgb,var(--surface,#17181b) 92%,transparent);
-    color:var(--fg,#f7f8f8);font-size:13px;cursor:pointer;
-    box-shadow:0 8px 24px rgba(0,0,0,.4);backdrop-filter:blur(10px);
+    position:fixed;right:18px;top:76px;z-index:9000;
+    border:1px solid color-mix(in srgb,var(--primary,#7170ff) 55%,transparent);border-radius:999px;padding:10px 18px;
+    background:color-mix(in srgb,var(--surface,#17181b) 88%,transparent);
+    color:var(--fg,#f7f8f8);font-size:14px;font-weight:600;cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 18px color-mix(in srgb,var(--primary,#7170ff) 20%,transparent);backdrop-filter:blur(10px);
     transition:border-color .2s;
   }
   #demoCta:hover{border-color:var(--primary,#7170ff);}
   #demoCta.hidden{display:none;}
   @media(max-width:680px){
-    #demoBar{top:70px;padding:8px 10px;gap:8px;}
+    #demoBar{top:70px;padding:10px 12px 10px 14px;gap:8px;}
     #demoBar .db-text{max-width:44vw;}
   }
 </style>
@@ -2302,8 +2304,6 @@
       </div>
     </div>
 
-    <button class="topbar-auth-btn" id="topbarAuthBtn" type="button">登录</button>
-
     <div class="spacer"></div>
 
     <div class="palette" id="palette" data-component="palette-picker">
@@ -2318,6 +2318,8 @@
     </div>
 
     <div class="avatar" title="我">M</div>
+
+    <button class="topbar-auth-btn" id="topbarAuthBtn" type="button">登录</button>
   </header>
 
   <div class="layout" id="weekView">
