@@ -2734,13 +2734,19 @@
       topbarAuthBtn.classList.remove("logged-in");
     }
   }
+  var lastLogoutAt = 0;
   topbarAuthBtn.addEventListener("click", function(){
     if(currentUser){
       // 退出登录：清空本地状态，回到访客演示版
       currentUser = null;
+      lastLogoutAt = Date.now();
+      try{ var so = sb.auth.signOut(); if(so && so.catch) so.catch(function(){}); }catch(e){}
       loadDemoData();
       dayTasks = getWeekTasks(curMon);
-      renderAll();
+      syncGoalCur();
+      render();
+      renderGoals();
+      renderJournal();
       // 确保登录遮罩隐藏，演示横幅显示
       authOverlay.classList.add("hidden");
       authOverlay.style.display="none";
@@ -2749,6 +2755,8 @@
       updateTopbarAuthBtn();
       toast("已退出登录，当前为演示版");
     } else {
+      // 刚退出时的连点保护：避免第二次点击误弹登录框
+      if(Date.now() - lastLogoutAt < 800) return;
       showAuthOverlay();
     }
   });
