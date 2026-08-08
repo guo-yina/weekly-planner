@@ -2741,7 +2741,11 @@
       loadDemoData();
       dayTasks = getWeekTasks(curMon);
       renderAll();
+      // 确保登录遮罩隐藏，演示横幅显示
+      authOverlay.classList.add("hidden");
+      authOverlay.style.display="none";
       demoBar.classList.remove("hidden");
+      demoCta.classList.add("hidden");
       updateTopbarAuthBtn();
       toast("已退出登录，当前为演示版");
     } else {
