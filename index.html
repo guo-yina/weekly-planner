@@ -6,7 +6,7 @@
 <meta name="canvas:aspect-ratio" content="1440:1024" />
 <meta name="canvas:width" content="1440" />
 <meta name="canvas:height" content="1024" />
-<title>周周搞事情</title>
+<title>周周很酷</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -2109,7 +2109,7 @@
 <!-- Auth overlay（默认隐藏：访客直接进演示版，点「注册/登录」才显示） -->
 <div id="authOverlay" class="hidden" style="display:none">
   <div class="auth-card">
-    <h1>周周搞事情</h1>
+    <h1>周周很酷</h1>
     <div class="sub">注册后拥有你自己的计划板 · 数据自动云同步</div>
     <input id="authEmail" type="email" placeholder="邮箱" autocomplete="email" />
     <input id="authPwd" type="password" placeholder="密码（至少6位）" autocomplete="current-password" />
@@ -2261,7 +2261,7 @@
         <svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
       </div>
       <div>
-        <div class="brand-name">周周搞事情</div>
+        <div class="brand-name">周周很酷</div>
         <div class="brand-sub">记录 · 回顾 · 成长沉淀</div>
       </div>
     </div>
@@ -5650,7 +5650,7 @@
     var range=weekLabel();
     var base=s.effectiveH>0?s.effectiveH:1;
     var tc=topCat(s);
-    L.push("# 周周搞事情 · 本周回顾");
+    L.push("# 周周很酷 · 本周回顾");
     L.push("");
     L.push("**" + range + " · 你的一周**");
     L.push("");
@@ -5736,14 +5736,14 @@
 
     L.push("---");
     L.push("");
-    L.push("*由 周周搞事情 生成 · 记录，然后回顾*");
+    L.push("*由 周周很酷 生成 · 记录，然后回顾*");
     L.push("");
     return L.join("\n");
   }
 
   function downloadReport(){
     var md=buildReportMarkdown();
-    var fname="周周搞事情-" + ymd(curMon).replace(/-/g,"") + "-周报.md";
+    var fname="周周很酷-" + ymd(curMon).replace(/-/g,"") + "-周报.md";
     try {
       var blob=new Blob([md],{type:"text/markdown;charset=utf-8"});
       var url=URL.createObjectURL(blob);
@@ -5771,7 +5771,7 @@
     var goalRows=monthGoalRows(ms);
     var reached=goalRows.filter(function(r){ return r.cur>=r.tgt; }).length;
 
-    L.push("# 周周搞事情 · 本月回顾");
+    L.push("# 周周很酷 · 本月回顾");
     L.push("");
     L.push("**" + curMon.getFullYear() + " 年 " + (curMon.getMonth()+1) + " 月 · 你的这个月**");
     L.push("");
@@ -5856,14 +5856,14 @@
 
     L.push("---");
     L.push("");
-    L.push("*由 周周搞事情 生成 · 记录，然后回顾*");
+    L.push("*由 周周很酷 生成 · 记录，然后回顾*");
     L.push("");
     return L.join("\n");
   }
 
   function downloadMonth(){
     var md=buildMonthMarkdown();
-    var fname="周周搞事情-202607-月报.md";
+    var fname="周周很酷-202607-月报.md";
     try {
       var blob=new Blob([md],{type:"text/markdown;charset=utf-8"});
       var url=URL.createObjectURL(blob);
