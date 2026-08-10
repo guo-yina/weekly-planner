@@ -2058,7 +2058,7 @@
 
   /* ---------- 访客体验横幅：先玩演示版，想正式用再注册 ---------- */
   #demoBar{
-    position:fixed;top:76px;right:18px;z-index:9000;
+    position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:9000;
     display:flex;align-items:center;gap:12px;
     max-width:calc(100vw - 24px);
     padding:12px 14px 12px 18px;border-radius:999px;
@@ -2069,7 +2069,7 @@
     font-size:14px;color:var(--fg,#f7f8f8);
     transition:opacity .3s ease,transform .3s ease;
   }
-  #demoBar.hidden{opacity:0;pointer-events:none;transform:translateY(-10px);}
+  #demoBar.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-10px);}
   #demoBar .db-dot{
     width:10px;height:10px;border-radius:50%;flex:none;
     background:var(--success,#3fcf8e);animation:dbPulse 1.8s ease infinite;
