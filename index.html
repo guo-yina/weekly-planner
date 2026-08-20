@@ -1465,6 +1465,11 @@
   .pool-head{display:flex;align-items:center;gap:10px;margin-bottom:calc(var(--u)*1.5);}
   .pool-head .lbl{font-size:13px;font-weight:600;}
   .pool-head .cnt{font-size:11px;color:var(--subtle);background:color-mix(in srgb,var(--white) 4%,transparent);border:1px solid var(--border);border-radius:99px;padding:1px 8px;}
+  .week-progress{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);
+    background:color-mix(in srgb,var(--white) 4%,transparent);border:1px solid var(--border);border-radius:99px;padding:3px 10px;white-space:nowrap;}
+  .week-progress b{font-weight:600;}
+  .week-progress .wp-done{color:var(--q2);}
+  .week-progress .wp-todo{color:var(--fg);}
   .pool-head .tip{margin-left:auto;font-size:11px;color:var(--subtle);display:flex;align-items:center;gap:6px;}
   .pool-cards{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;min-height:96px;align-items:flex-start;}
   .pool-cards .card{min-width:232px;max-width:232px;}
@@ -2379,6 +2384,7 @@
           <svg class="icon dot-ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
           <h2>本周计划</h2>
           <span class="hint">已排期的会带上时间；其余只记「哪天做的」，做完拖到那天就好。</span>
+          <span class="week-progress" id="weekProgress" hidden></span>
           <button type="button" class="dt-sync sec-end" id="calSyncBtn" title="到点前 5 分钟弹系统通知提醒你（记得让这个网页开着）">
             <svg class="dt-sync-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             <span class="dt-sync-tx">开启提醒</span>
@@ -3709,8 +3715,26 @@
           .forEach(function(t){ poolCards.appendChild(makeCard(t)); });
     }
     poolCnt.textContent = pool.length+" 件 · 未定日期";
+    updateWeekProgress();
     renderReviewPreview();
     scheduleSave();
+  }
+
+  // 「本周计划」头部进度徽章：已完成 X 件 · 待完成 X 件（会议不计数）
+  function updateWeekProgress(){
+    var el=document.getElementById("weekProgress");
+    if(!el) return;
+    var done=0, todo=0;
+    (dayTasks||[]).forEach(function(arr){
+      (arr||[]).forEach(function(t){
+        if(t.type==="meeting") return;
+        if(t.done) done++; else todo++;
+      });
+    });
+    if(done===0 && todo===0){ el.hidden=true; el.innerHTML=""; return; }
+    el.hidden=false;
+    if(todo===0) el.innerHTML="已完成 <b class=\"wp-done\">"+done+"</b> 件 · 全部搞定，这周太棒了";
+    else el.innerHTML="已完成 <b class=\"wp-done\">"+done+"</b> 件 · 待完成 <b class=\"wp-todo\">"+todo+"</b> 件";
   }
 
   // 侧边栏「本周回顾 · 预览」——从真实周数据动态计算四象限时间占比
