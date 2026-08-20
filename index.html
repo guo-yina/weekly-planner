@@ -4378,6 +4378,9 @@
     if(/今[天日]/.test(s)) return todayIdx();
     if(/明[天日]/.test(s)) return Math.min(6,todayIdx()+1);
     if(/后天/.test(s)) return Math.min(6,todayIdx()+2);
+    // 「下周X」→ 7+X（7=下周一 … 13=下周日），必须先于通用「周X」判断
+    var nw=s.match(/(?:下周|下礼拜|下星期)([一二三四五六日天])/);
+    if(nw && WD_IDX[nw[1]]!=null) return 7+WD_IDX[nw[1]];
     var w=s.match(/(?:周|礼拜|星期)([一二三四五六日天])/);
     if(w && WD_IDX[w[1]]!=null) return WD_IDX[w[1]];
     var d=s.match(/(\d{1,2})\s*[\/月]\s*(\d{1,2})/);
@@ -4409,6 +4412,7 @@
   }
   function cleanTitle(s){
     return s
+      .replace(/(?:下周|下礼拜|下星期)[一二三四五六日天]/g,"")
       .replace(/(?:周|礼拜|星期)[一二三四五六日天]/g,"")
       .replace(/今[天日]|明[天日]|后天/g,"")
       .replace(/凌晨|早上|上午|中午|下午|晚上|傍晚/g,"")
@@ -4515,12 +4519,13 @@
     // 整周（"清空这周"、"本周全部删掉"），但句子里若点名了具体星期几就不算整周
     var hasNamedDay=/(?:周|礼拜|星期)[一二三四五六日天]/.test(s);
     var allWeek = !hasNamedDay && /整周|清空(这|本)?周|(这|本)周(全部|所有|都)|一整周|全部日程|所有日程/.test(s);
-    // 具体星期几（可多个）
+    // 具体星期几（可多个；「下周X」不算本周，跳过）
     var days=[], m, re=/(?:周|礼拜|星期)([一二三四五六日天])/g;
-    while((m=re.exec(s))){ var idx=WD_IDX[m[1]]; if(idx!=null && days.indexOf(idx)<0) days.push(idx); }
+    while((m=re.exec(s))){ if(m.index>0 && s.charAt(m.index-1)==="下") continue; var idx=WD_IDX[m[1]]; if(idx!=null && days.indexOf(idx)<0) days.push(idx); }
     // 范围写法（"周一到周五"、"周一至周三"、"周一~周四"）→ 展开成区间内的每一天
     var rangeRe=/(?:周|礼拜|星期)([一二三四五六日天])\s*(?:到|至|~|～|—|－|-)\s*(?:周|礼拜|星期)?([一二三四五六日天])/g;
     while((m=rangeRe.exec(s))){
+      if(m.index>0 && s.charAt(m.index-1)==="下") continue;
       var a=WD_IDX[m[1]], b=WD_IDX[m[2]];
       if(a!=null && b!=null){
         var lo=Math.min(a,b), hi=Math.max(a,b);
@@ -4661,6 +4666,7 @@
       .replace(/的|日程|安排|任务|事项|会议|日历|这个|那个|一下|请|帮我|吧|了|把|从|，|,|。|、/g,"")
       .trim();
     if(kw.length<2) kw="";
+    if(destDay>6 || srcDay>6) return {ambiguous:true, reason:"next-week"};
     if(destDay<0 && !destTime) return {ambiguous:true, reason:"no-dest"};
     if(!kw) return {ambiguous:true, reason:"no-kw"};
     return {keyword:kw, srcDay:srcDay, destDay:destDay, destTime:destTime};
@@ -4744,7 +4750,8 @@
   function handleMoveIntent(f){
     var inp=document.getElementById("aiInput");
     if(!f || f.ambiguous){
-      if(f && f.reason==="no-dest") toast("要改到什么时候呢？比如「把部门周会从周一改到周三」或「改到周三下午3点」");
+      if(f && f.reason==="next-week") toast("暂不支持改到下周哦 —— 可以顶部切到下周再拖，或直接写「下周X …」新增");
+      else if(f && f.reason==="no-dest") toast("要改到什么时候呢？比如「把部门周会从周一改到周三」或「改到周三下午3点」");
       else toast("想改哪件事呢？比如「把设计评审从周二改到周四」");
       return;
     }
@@ -4873,7 +4880,7 @@
   // 本地降级解析（无网络/AI 不可用时用）
   function fallbackParse(raw){
     var btn=aiRunEl, inp=document.getElementById("aiInput");
-    var newIds=[], toDay=0, toPool=0, toCheck=0, toDup=0;
+    var newIds=[], toDay=0, toPool=0, toNext=0, toCheck=0, toDup=0;
     // 先整体识别「读书页数」这类进度目标（总页数和当前页常被逗号拆到不同分句里）
     var pgHandled=false;
     var pg=parseProgressGoal(raw);
@@ -4895,13 +4902,24 @@
       var di=parseDay(f), tm=parseTime(f), q=guessQ(f);
       var title=cleanTitle(f)||f;
       var task={id:nid(),type:"task",title:title,q:q,done:false};
-      if(di>=0){
+      if(di>=0 && di<=6){
         if(tm) task.time=tm;
         if(taskExists(dayTasks[di], task.title, task.time)){ toDup++; return; }
         task.desc="已排入"+days[di].wd+(tm?(" "+tm):"");
         newIds.push(task.id);
         dayTasks[di].push(task);
         toDay++;
+      }else if(di>=7 && di<=13){
+        // 「下周X」→ 写进下周（以下周一为 key）的格子
+        var nextKey=ymd(addDays(curMon,7));
+        if(!weeks[nextKey]) weeks[nextKey]=[[],[],[],[],[],[],[]];
+        var ndi=di-7;
+        if(tm) task.time=tm;
+        if(taskExists(weeks[nextKey][ndi], task.title, task.time)){ toDup++; return; }
+        task.desc="已排入下"+WDS[ndi]+(tm?(" "+tm):"");
+        newIds.push(task.id);
+        weeks[nextKey][ndi].push(task);
+        toNext++;
       }else{
         if(taskExists(pool, task.title, task.time)){ toDup++; return; }
         task.desc="未定日期，先放任务池";
@@ -4919,9 +4937,10 @@
     setTimeout(function(){ btn.innerHTML=AI_BTN_DEFAULT; },1800);
     var parts=[];
     if(toDay) parts.push(toDay+" 个排进日历");
+    if(toNext) parts.push(toNext+" 个排进下周");
     if(toPool) parts.push(toPool+" 个进任务池");
     if(toCheck) parts.push(toCheck+" 个打卡目标（已放进右侧目标打卡）");
-    var totalAdded=toDay+toPool+toCheck;
+    var totalAdded=toDay+toNext+toPool+toCheck;
     if(totalAdded===0 && toDup>0){
       toast("这 "+toDup+" 条你已经安排过了，没重复添加～");
     }else{
