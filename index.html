@@ -1255,6 +1255,7 @@
   .day-tag.work{color:color-mix(in srgb,var(--q1) 90%,var(--white));background:color-mix(in srgb,var(--q1) 16%,transparent);border:1px solid color-mix(in srgb,var(--q1) 34%,transparent);}
   .day-fest{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
   .day-fest.term{color:color-mix(in srgb,var(--q3) 78%,var(--muted));}
+  .day-hours{margin-left:auto;font-size:10px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;flex:none;}
   .day-body{display:flex;flex-direction:column;gap:8px;flex:1;min-height:40px;}
   .col-empty{margin-top:6px;font-size:11px;color:var(--faint);text-align:center;border:1px dashed var(--border);border-radius:8px;padding:14px 6px;line-height:1.5;}
 
@@ -3686,6 +3687,13 @@
       if(mk.work) meta+='<span class="day-tag work" title="调休上班日">班</span>';
       else if(mk.rest) meta+='<span class="day-tag rest" title="'+(mk.holiday?mk.holiday+" · 休息":"周末休息")+'">休</span>';
       if(mk.label) meta+='<span class="day-fest'+(mk.isTerm?" term":"")+'" title="'+mk.label+'">'+mk.label+'</span>';
+      // 当日已记录时长：已完成任务的 spent + 会议时长
+      var dh=0;
+      (dayTasks[i]||[]).forEach(function(t){
+        if(t.type==="meeting") dh+=meetingHours(t);
+        else if(t.done) dh+=t.spent||0;
+      });
+      if(dh>0) meta+='<span class="day-hours" title="当天已记录 '+fmtSpent(dh)+'">'+fmtSpent(dh)+'</span>';
       col.appendChild(el("div","day-h",
         '<div class="dh-top"><span class="wd">'+d.wd+'</span>'+dtRight+'</div>'+
         '<div class="dh-meta">'+meta+'</div>'));
