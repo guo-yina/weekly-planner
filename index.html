@@ -1628,6 +1628,7 @@
   .qbar .qtrack{flex:1;height:8px;border-radius:99px;background:color-mix(in srgb,var(--white) 6%,transparent);overflow:hidden;}
   .qbar .qtrack i{display:block;height:100%;border-radius:99px;}
   .qbar .qpct{font-size:11px;color:var(--muted);width:34px;text-align:right;flex:none;}
+  .qbar .qhours{font-size:11px;color:var(--fg);font-weight:600;width:40px;text-align:right;flex:none;font-variant-numeric:tabular-nums;}
   .btn-review{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:500;
     padding:10px;border-radius:9px;border:1px solid var(--border-strong);background:color-mix(in srgb,var(--white) 4%,transparent);color:var(--fg);transition:.16s;}
   .btn-review:hover{background:color-mix(in srgb,var(--white) 8%,transparent);border-color:var(--primary-ring);}
@@ -2427,10 +2428,10 @@
         <p class="rsub" id="rvLede">还没有完成记录 —— 做完一件事，把它拖到对应的日子里试试。</p>
         <p class="rtime" id="rvTime" hidden></p>
         <div class="qbars">
-          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q1)"></span>重要且紧急</span><span class="qtrack"><i id="rvBar1" style="width:0%;background:var(--q1)"></i></span><span class="qpct" id="rvPct1">0%</span></div>
-          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q2)"></span>重要不紧急</span><span class="qtrack"><i id="rvBar2" style="width:0%;background:var(--q2)"></i></span><span class="qpct" id="rvPct2">0%</span></div>
-          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q3)"></span>紧急不重要</span><span class="qtrack"><i id="rvBar3" style="width:0%;background:var(--q3)"></i></span><span class="qpct" id="rvPct3">0%</span></div>
-          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q4)"></span>不重要不紧急</span><span class="qtrack"><i id="rvBar4" style="width:0%;background:var(--q4)"></i></span><span class="qpct" id="rvPct4">0%</span></div>
+          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q1)"></span>重要且紧急</span><span class="qtrack"><i id="rvBar1" style="width:0%;background:var(--q1)"></i></span><span class="qhours" id="rvH1">0h</span><span class="qpct" id="rvPct1">0%</span></div>
+          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q2)"></span>重要不紧急</span><span class="qtrack"><i id="rvBar2" style="width:0%;background:var(--q2)"></i></span><span class="qhours" id="rvH2">0h</span><span class="qpct" id="rvPct2">0%</span></div>
+          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q3)"></span>紧急不重要</span><span class="qtrack"><i id="rvBar3" style="width:0%;background:var(--q3)"></i></span><span class="qhours" id="rvH3">0h</span><span class="qpct" id="rvPct3">0%</span></div>
+          <div class="qbar"><span class="ql"><span class="qd" style="background:var(--q4)"></span>不重要不紧急</span><span class="qtrack"><i id="rvBar4" style="width:0%;background:var(--q4)"></i></span><span class="qhours" id="rvH4">0h</span><span class="qpct" id="rvPct4">0%</span></div>
         </div>
         <button class="btn-review" id="goReport">
           查看完整周报
@@ -3728,9 +3729,11 @@
     for(var i=1;i<=4;i++){
       var bar = document.getElementById("rvBar"+i);
       var pct = document.getElementById("rvPct"+i);
+      var hrs = document.getElementById("rvH"+i);
       var p = total>0 ? Math.round(qh[i-1]/total*100) : 0;
       if(bar) bar.style.width = p+"%";
       if(pct) pct.textContent = p+"%";
+      if(hrs) hrs.textContent = qh[i-1]>0 ? fmtSpent(qh[i-1]) : "0h";
     }
     if(lede){
       if(total<=0){
