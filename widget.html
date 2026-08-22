@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Planner Cool · 桌面小组件</title>
+<style>
+  html,body{margin:0;padding:0;background:transparent;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:#f4f6fb;-webkit-font-smoothing:antialiased;
+  }
+  /* 固定在桌面左上角；鼠标事件穿透，不影响正常操作桌面 */
+  #wg{position:fixed;top:26px;left:26px;width:330px;user-select:none;pointer-events:none;}
+  .card{
+    background:rgba(15,17,23,.72);
+    backdrop-filter:blur(20px) saturate(1.4);
+    -webkit-backdrop-filter:blur(20px) saturate(1.4);
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:16px;
+    padding:13px 15px 12px;
+    margin-bottom:12px;
+    box-shadow:0 12px 32px rgba(0,0,0,.38);
+  }
+  .card h3{
+    margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:.2px;
+    display:flex;align-items:center;gap:7px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;flex:none;background:#2dd4bf;box-shadow:0 0 8px rgba(45,212,191,.8);}
+  .dot.warn{background:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,.8);}
+  .h-sub{margin-left:auto;font-size:11px;font-weight:500;color:rgba(255,255,255,.48);font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+  /* 今天列表 */
+  .it{display:flex;align-items:flex-start;gap:8px;padding:4.5px 0;font-size:12.5px;line-height:1.45;border-top:1px dashed rgba(255,255,255,.07);}
+  .it:first-of-type{border-top:none;}
+  .it .cb{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);flex:none;margin-top:2.5px;box-sizing:border-box;}
+  .it.done{opacity:.55;}
+  .it.done .cb{border-color:transparent;background:#34d399 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2308130d' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4 10-10'/%3E%3C/svg%3E") center/8px 8px no-repeat;}
+  .it.done .tt{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.4);}
+  .it .tm{flex:none;width:34px;font-size:11px;font-weight:600;color:#fbbf24;font-variant-numeric:tabular-nums;margin-top:1.5px;}
+  .it .tm.none{color:rgba(255,255,255,.22);font-weight:400;}
+  .it .tt{flex:1;word-break:break-word;}
+  .tag{display:inline-block;vertical-align:1px;margin-left:4px;padding:0 5px;border-radius:5px;font-size:10px;font-weight:600;color:#93c5fd;background:rgba(96,165,250,.16);border:1px solid rgba(96,165,250,.3);}
+  .more{font-size:11px;color:rgba(255,255,255,.4);padding-top:4px;}
+  .empty{margin:2px 0;font-size:12.5px;color:rgba(255,255,255,.55);line-height:1.6;}
+  .alldone{margin:2px 0 4px;font-size:12.5px;font-weight:600;color:#34d399;line-height:1.5;}
+  .notice{margin:2px 0;font-size:12px;color:rgba(255,255,255,.62);line-height:1.7;}
+
+  /* 本周进度 */
+  .wline{display:flex;align-items:baseline;font-size:12.5px;color:rgba(255,255,255,.72);gap:4px;}
+  .wline b{font-size:15px;font-weight:700;color:#f4f6fb;font-variant-numeric:tabular-nums;}
+  .wline .wpct{margin-left:auto;font-size:11px;font-weight:600;color:#2dd4bf;font-variant-numeric:tabular-nums;}
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin:7px 0 6px;}
+  .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#2dd4bf,#a3e635);transition:width .6s ease;}
+  .wsub{font-size:11px;color:rgba(255,255,255,.48);}
+
+  .stamp{font-size:10.5px;color:rgba(255,255,255,.34);padding:1px 4px;text-align:right;}
+</style>
+</head>
+<body>
+<div id="wg" data-component="desktop-widget"></div>
+
+<script>
+(function(){
+  "use strict";
+  var qs = new URLSearchParams(location.search);
+  var K = qs.get("k") || "";
+  var root = document.getElementById("wg");
+  var WDS = ["周一","周二","周三","周四","周五","周六","周日"];
+
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  function ymd(d){ return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+  function mondayOf(d){ var r = new Date(d); var idx = (r.getDay() === 0 ? 6 : r.getDay()-1); r.setDate(r.getDate()-idx); return r; }
+  // 与主站一致的会议时长规则：优先 dur；其次描述里的「N 小时 / N 分钟」；再不行默认 1h
+  function meetingHours(t){
+    if(t.dur != null) return t.dur;
+    var d = t.desc || "";
+    var mh = d.match(/(\d+(?:\.\d+)?)\s*小时/); if(mh) return parseFloat(mh[1]);
+    var mm = d.match(/(\d+)\s*分钟/); if(mm) return Math.round(parseInt(mm[1],10)/60*100)/100;
+    return 1;
+  }
+  function fmtH(h){ return (Math.round(h*10)/10).toString().replace(/\.0$/, ""); }
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function card(html){ return "<div class=\"card\">" + html + "</div>"; }
+  function notice(title, bodyHtml, warn){
+    root.innerHTML = card(
+      "<h3><span class=\"dot" + (warn ? " warn" : "") + "\"></span>" + esc(title) + "</h3>" +
+      "<p class=\"notice\">" + bodyHtml + "</p>"
+    );
+  }
+
+  // ---- 没有链接：说明还没从主站复制 ----
+  if(!K){
+    notice("Planner Cool · 桌面小组件",
+      "启用方法：<br>1. 打开 planner.cool 并登录<br>2. 点顶部工具栏的「小组件」图标<br>3. 把复制到的链接粘贴到 Plash 的网址栏",
+      true);
+    return;
+  }
+
+  var today = new Date();
+  var mon = mondayOf(today);
+  var sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  var ws = ymd(mon);
+  var todayIdx = (today.getDay() === 0 ? 6 : today.getDay() - 1);
+
+  function render(week){
+    var day = week[todayIdx] || [];
+    var pend = [], done = [];
+    day.forEach(function(t){ (t.done ? done : pend).push(t); });
+    function byTime(a,b){ var ta = a.time || "99:99", tb = b.time || "99:99"; return ta < tb ? -1 : (ta > tb ? 1 : 0); }
+    pend.sort(byTime); done.sort(byTime);
+
+    var show = pend.concat(done).slice(0, 8);
+    var rows = show.map(function(t){
+      var isMeet = t.type === "meeting";
+      return "<div class=\"it" + (t.done ? " done" : "") + "\">"
+        + "<span class=\"cb\"></span>"
+        + "<span class=\"tm" + (t.time ? "" : " none") + "\">" + (t.time ? esc(t.time) : "·") + "</span>"
+        + "<span class=\"tt\">" + esc(t.title) + (isMeet ? "<span class=\"tag\">会议</span>" : "") + "</span>"
+        + "</div>";
+    });
+    var extra = day.length - show.length;
+
+    var head = "今天 · " + (today.getMonth()+1) + "月" + today.getDate() + "日 " + WDS[todayIdx];
+    var body;
+    if(day.length === 0){
+      body = "<p class=\"empty\">今天没有安排，享受当下 ✨</p>";
+    } else if(pend.length === 0){
+      body = "<p class=\"alldone\">今天的 " + done.length + " 件事全部完成，太棒了</p>" + rows.join("");
+    } else {
+      body = rows.join("") + (extra > 0 ? "<div class=\"more\">还有 " + extra + " 项…</div>" : "");
+    }
+
+    // 本周统计（与主站口径一致：会议全量计入，任务只计已完成的 spent）
+    var doneCount = 0, todoCount = 0, recH = 0, meetH = 0;
+    week.forEach(function(arr){
+      (arr || []).forEach(function(t){
+        if(t.type === "meeting"){ var h = meetingHours(t); meetH += h; recH += h; return; }
+        if(t.done){ doneCount++; recH += (t.spent || 0); }
+        else todoCount++;
+      });
+    });
+    var total = doneCount + todoCount;
+    var pct = total ? Math.round(doneCount / total * 100) : 0;
+
+    var weekCard = card(
+      "<h3><span class=\"dot\"></span>本周进度" +
+        "<span class=\"h-sub\">" + (mon.getMonth()+1) + "月" + mon.getDate() + "日 – " + (sun.getMonth()+1) + "月" + sun.getDate() + "日</span></h3>" +
+      "<div class=\"wline\">已完成 <b>" + doneCount + "</b> 件 · 待完成 <b>" + todoCount + "</b> 件<span class=\"wpct\">" + pct + "%</span></div>" +
+      "<div class=\"bar\"><i style=\"width:" + pct + "%\"></i></div>" +
+      (recH > 0
+        ? "<div class=\"wsub\">已记录 " + fmtH(recH) + "h" + (meetH > 0 ? "（含会议 " + fmtH(meetH) + "h）" : "") + "</div>"
+        : "<div class=\"wsub\">这周还没记录时长</div>")
+    );
+
+    root.innerHTML = card("<h3><span class=\"dot\"></span>" + esc(head) + "</h3>" + body) + weekCard +
+      "<div class=\"stamp\">Planner Cool · 每 5 分钟自动刷新</div>";
+  }
+
+  function load(){
+    fetch("/api/widget?k=" + encodeURIComponent(K) + "&ws=" + ws)
+      .then(function(r){ return r.json().then(function(d){ return { status: r.status, d: d || {} }; })["catch"](function(){ return { status: r.status, d: {} }; }) })
+      .then(function(o){
+        var d = o.d;
+        if(o.status === 401 || d.error === "invalid-link"){
+          notice("链接失效了", "请重新打开 planner.cool，点顶部工具栏的「小组件」图标复制新链接，替换 Plash 里的旧网址。", true);
+          return;
+        }
+        if(d.error === "not-configured"){
+          notice("小组件还没激活", "服务端还差最后一步配置（Vercel 环境变量，见教程）。配置完成后，这里会显示你今天的安排。", true);
+          return;
+        }
+        if(!d.ok){
+          notice("暂时加载不出数据", "会自动重试。如果一直显示这条，请检查网络，或重新复制一次小组件链接。", true);
+          return;
+        }
+        render(d.tasks || []);
+      })["catch"](function(){
+        notice("暂时加载不出数据", "会自动重试。如果一直显示这条，请检查网络，或重新复制一次小组件链接。", true);
+      });
+  }
+
+  load();
+  setInterval(load, 5 * 60 * 1000); // 每 5 分钟刷新一次
+})();
+</script>
+</body>
+</html>

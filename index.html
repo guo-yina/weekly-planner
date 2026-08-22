@@ -1025,6 +1025,13 @@
     box-shadow:0 0 0 1px color-mix(in srgb,var(--fg) 14%,transparent) inset;}
   body.focus-on .palette{opacity:1;}
 
+  .widget-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;
+    border-radius:var(--radius-pill);border:1px solid var(--border);background:var(--surface-2);
+    color:var(--muted);cursor:pointer;
+    transition:border-color .18s ease,color .18s ease,background .18s ease;}
+  .widget-btn:hover{color:var(--fg);border-color:var(--border-strong);background:var(--surface-3);}
+  .widget-btn:disabled{opacity:.5;cursor:wait;}
+
   .palette-pop{position:absolute;top:calc(100% + 8px);right:0;z-index:60;width:236px;
     background:var(--surface-2);border:1px solid var(--border-strong);border-radius:var(--radius-lg);
     box-shadow:var(--shadow-pop);padding:calc(var(--u)*1.4);
@@ -2315,6 +2322,10 @@
 
     <div class="spacer"></div>
 
+    <button class="widget-btn" id="widgetLinkBtn" type="button" title="复制桌面小组件链接">
+      <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="10" rx="2"/><rect x="13" y="4" width="8" height="6" rx="2"/><rect x="13" y="12" width="8" height="8" rx="2"/><rect x="3" y="16" width="8" height="4" rx="2"/></svg>
+    </button>
+
     <div class="palette" id="palette" data-component="palette-picker">
       <button class="palette-btn" id="paletteBtn" title="切换配色风格" aria-haspopup="true" aria-expanded="false">
         <span class="palette-dot"></span>
@@ -2784,6 +2795,47 @@
     demoBar.classList.add("hidden");
     demoCta.classList.remove("hidden");
   });
+
+  // ---- 桌面小组件：复制专属链接（配合 Plash 贴在桌面壁纸上）----
+  var widgetLinkBtn = document.getElementById("widgetLinkBtn");
+  if(widgetLinkBtn){
+    widgetLinkBtn.addEventListener("click", async function(){
+      if(!currentUser){ toast("请先登录后再使用桌面小组件"); showAuthOverlay(); return; }
+      widgetLinkBtn.disabled = true;
+      try{
+        var sess = await sb.auth.getSession();
+        var accessToken = sess && sess.data && sess.data.session && sess.data.session.access_token;
+        if(!accessToken) throw new Error("no-session");
+        var r = await fetch("/api/widget-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + accessToken }
+        });
+        var d = await r.json()["catch"](function(){ return {}; });
+        if(!r.ok || !d.token){
+          if(d.error === "not-configured") throw new Error("not-configured");
+          if(d.error === "bad-session") throw new Error("no-session");
+          throw new Error("fail");
+        }
+        var link = location.origin + "/widget.html?k=" + encodeURIComponent(d.token);
+        var ok = false;
+        try{ await navigator.clipboard.writeText(link); ok = true; }catch(e){}
+        if(!ok){
+          var ta = document.createElement("textarea");
+          ta.value = link; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.select();
+          try{ ok = document.execCommand("copy"); }catch(e){}
+          document.body.removeChild(ta);
+        }
+        toast(ok ? "小组件链接已复制，粘贴到 Plash 即可上桌面" : "复制失败了，请再点一次试试");
+      }catch(e){
+        var msg = e && e.message;
+        if(msg === "no-session") toast("登录状态已过期，请重新登录后再试");
+        else if(msg === "not-configured") toast("小组件还没激活：请先完成 Vercel 环境变量配置（见教程）");
+        else toast("生成小组件链接失败，请稍后再试");
+      }
+      widgetLinkBtn.disabled = false;
+    });
+  }
 
   async function doAuth(){
     var email = authEmail.value.trim();
